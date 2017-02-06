@@ -35,8 +35,9 @@ app.get('/process', function (req, res) {
         fee.values.push({month: i, value: value});
       }
     }
-    fs.writeFile('./dolar.json',JSON.stringify( fee ) );
-    res.send('Process OK');
+    var rawOutput = JSON.stringify( fee );
+    fs.writeFile('./dolar.json', rawOutput);
+    res.send(rawOutput + ' <BR/> Process OK');
 })
 
 app.listen(3000, function () {
