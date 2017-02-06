@@ -54,6 +54,6 @@ app.get('/process', function (req, res) {
     res.send(rawOutput + ' <BR/> Process OK');
 })
 
-app.listen(80, function () {
+app.listen(process.env.PORT || 3000, function () {
   console.log('Example app listening on port 3000!');
 })
