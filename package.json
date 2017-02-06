@@ -1,0 +1,27 @@
+{
+  "name": "mervaldoesntstain",
+  "version": "1.0.0",
+  "description": "Merval Monitoring",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ldvalido/MervalDoesntStain.git"
+  },
+  "keywords": [
+    "merval",
+    "dolar",
+    "futuro"
+  ],
+  "author": "Leandro Valido",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ldvalido/MervalDoesntStain/issues"
+  },
+  "homepage": "https://github.com/ldvalido/MervalDoesntStain#readme",
+  "dependencies": {
+    "express": "^4.14.1"
+  }
+}
