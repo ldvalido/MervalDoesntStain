@@ -63,7 +63,7 @@ app.get('/process', function (req, res) {
 app.listen(process.env.PORT || 3000, function () {
   console.log('Example app listening on port 3000!');
   var rule = new schedule.RecurrenceRule();
-  rule.hour = 0;
+  rule.hour = 5;
   rule.minute = 0;
 
   schedule.scheduleJob(rule, function(){
