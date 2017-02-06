@@ -17,7 +17,7 @@ app.get('/getrate/:month', function (req, res) {
   var fee = JSON.parse(rawData);
   var el = fee.values.find ( o => o.month == parseInt(req.params.month) );
   if (el){
-    res.send(el.value);
+    res.send(JSON.stringify(el));
   }
 })
 
