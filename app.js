@@ -6,16 +6,29 @@ var util = require('util');
 var fs = require('fs');
 var fileName = './dolar.json';
 var schedule = require('node-schedule');
+var xml = require('xml2js');
+var dateformat = require('dateformat');
 
 function pad(n, width, z) {
   z = z || '0';
   n = n + '';
   return n.length >= width ? n : new Array(width - n.length + 1).join(z) + n;
 }
-
+function getCurrentDollarRate() {
+  var returnValue = '';
+  var url = 'http://www.webservicex.net/CurrencyConvertor.asmx/ConversionRate?FromCurrency=USD&ToCurrency=ARS';
+  var response = request('GET',url);
+  var rawResponse = response.getBody('utf8');
+  xml.parseString(rawResponse, function (err, result) {
+      returnValue = result.double._;
+  });
+  return returnValue;
+}
 function processRates() {
+  var currentDate = new Date();
   var fee = {
-    processDate: new Date,
+    processDate: currentDate,
+    rate: null,
     values: []
   };
   var key='DLR%s2017';
@@ -41,9 +54,12 @@ function processRates() {
       }
     }
   }
+  fee.rate = getCurrentDollarRate();
   var rawOutput = JSON.stringify( fee );
   fs.writeFile(fileName, rawOutput);
-  return rawOutput + ' <BR/> Process OK';
+  fs.writeFile('./history/' + dateformat(currentDate,'yyyymmdd') + '.json', rawOutput);
+
+  return rawOutput;
 }
 
 app.get('/getrate/:month', function (req, res) {
@@ -70,5 +86,4 @@ app.listen(process.env.PORT || 3000, function () {
     console.log('Running Schedule for create rates' + new Date().toISOString());
     processRates();
   });
-
 })
