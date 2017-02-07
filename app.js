@@ -81,6 +81,7 @@ app.listen(process.env.PORT || 3000, function () {
   var rule = new schedule.RecurrenceRule();
   rule.hour = 5;
   rule.minute = 0;
+  rule.second = 0;
 
   schedule.scheduleJob(rule, function(){
     console.log('Running Schedule for create rates' + new Date().toISOString());
