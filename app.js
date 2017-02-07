@@ -71,6 +71,11 @@ app.get('/getrate/:month', function (req, res) {
   }
 })
 
+app.get('/getCurrentRate', function(req,res) {
+  var rawData = fs.readFileSync(fileName, 'utf8');
+  var fee = JSON.parse(rawData);
+  res.send( JSON.stringify(fee.rate) );
+})
 app.get('/process', function (req, res) {
     var result = processRates();
     res.send(result);
