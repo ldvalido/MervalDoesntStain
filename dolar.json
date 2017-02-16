@@ -1,1 +1,54 @@
-{"processDate":"2017-02-06T15:04:02.481Z","values":[{"month":1,"value":"16,023"},{"month":2,"value":"15,9000"},{"month":3,"value":"16,1800"},{"month":4,"value":"16,4250"},{"month":5,"value":"16,7050"},{"month":6,"value":"16,9800"},{"month":7,"value":"17,2260"},{"month":8,"value":"17,4750"},{"month":9,"value":"17,7000"},{"month":10,"value":"17,9500"},{"month":11,"value":"18,1850"},{"month":12,"value":"18,4500"}],"rate":"15.769"}
+{
+  "processDate": "2017-02-06T15:04:02.481Z",
+  "values": [
+    {
+      "month": 1,
+      "value": "16,023"
+    },
+    {
+      "month": 2,
+      "value": "15,5350"
+    },
+    {
+      "month": 3,
+      "value": "15,8300"
+    },
+    {
+      "month": 4,
+      "value": "16,0400"
+    },
+    {
+      "month": 5,
+      "value": "16,2850"
+    },
+    {
+      "month": 6,
+      "value": "16,5900"
+    },
+    {
+      "month": 7,
+      "value": "16,8050"
+    },
+    {
+      "month": 8,
+      "value": "17,1000"
+    },
+    {
+      "month": 9,
+      "value": "17,3200"
+    },
+    {
+      "month": 10,
+      "value": "17,5500"
+    },
+    {
+      "month": 11,
+      "value": "17,8400"
+    },
+    {
+      "month": 12,
+      "value": "18,1000"
+    }
+  ],
+  "rate": "15.419"
+}
