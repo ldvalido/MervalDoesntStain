@@ -8,83 +8,10 @@ var fileName = './dolar.json';
 var schedule = require('node-schedule');
 var xml = require('xml2js');
 var dateformat = require('dateformat');
+var functions = require('./functions.js');
+const statusMonitor = require('express-status-monitor')();
 
-function pad(n, width, z) {
-  z = z || '0';
-  n = n + '';
-  return n.length >= width ? n : new Array(width - n.length + 1).join(z) + n;
-}
-
-function parseDateTime(rawValue, format) {
-
-}
-function getBadlarRate()
-{
-  var returnValue = [];
-  var url = 'http://www.ambito.com/economia/mercados/tasas/info/?ric=ARSBADW1MD=RR';
-  var rawHtml = request('GET', url);
-  var html = response.getBody('utf8');
-  var dom = $.load(html);
-  var elements = $('.tablaMercados > tbody > tr > td .numeros');
-  for (var i = 0; i < elements.length / 3; i++) {
-    var rawDate = $(elements[i*3]).text();
-    var rawValue = $(elements[i* 3 + 2]).text();
-    var el = {
-      date: rawDate,
-      value: parseFloat(rawValue.replace(',','.'))
-    }
-    returnValue.push(el);
-  }
-  return returnValue;
-}
-function getCurrentDollarRate() {
-  var returnValue = '';
-  var url = 'http://www.webservicex.net/CurrencyConvertor.asmx/ConversionRate?FromCurrency=USD&ToCurrency=ARS';
-  var response = request('GET',url);
-  var rawResponse = response.getBody('utf8');
-  xml.parseString(rawResponse, function (err, result) {
-      returnValue = result.double._;
-  });
-  return returnValue;
-}
-function processRates() {
-  var currentDate = new Date();
-  var fee = {
-    processDate: currentDate,
-    rate: null,
-    values: []
-  };
-  var key='DLR%s2017';
-  var url = 'https://www.rofex.com.ar';
-
-  var rawData = fs.readFileSync(fileName, 'utf8');
-  var fee = JSON.parse(rawData);
-
-  var html = request('GET',url);
-  var rawHtml = html.getBody('utf8');
-  var node = $.load(rawHtml);
-  for (var i = 1; i <= 12; i++) {
-
-    var selector = util.format(".table-rofex > tbody > tr:contains('%s') td", util.format(key, pad(i,2)  ) );
-
-    var value = node(selector).first().next().text();
-    if (value != '') {
-      var el = fee.values.find ( o => o.month == i);
-      if (el){
-        el.value= value;
-      }else{
-        fee.values.push({month: i, value: value});
-      }
-    }
-  }
-  fee.rate = getCurrentDollarRate();
-  var rawOutput = JSON.stringify( fee );
-  fs.writeFile(fileName, rawOutput);
-  fs.writeFile('./history/' + dateformat(currentDate,'yyyymmdd') + '.json', rawOutput);
-
-  return rawOutput;
-}
-
+app.use(statusMonitor);
 app.get('/getrate/:month', function (req, res) {
   var rawData = fs.readFileSync(fileName, 'utf8');
   var fee = JSON.parse(rawData);
@@ -100,7 +27,7 @@ app.get('/getCurrentRate', function(req,res) {
   res.send( JSON.stringify(fee.rate) );
 })
 app.get('/process', function (req, res) {
-    var result = processRates();
+    var result = functions.processRates();
     res.send(result);
 })
 
@@ -113,6 +40,6 @@ app.listen(process.env.PORT || 3000, function () {
 
   schedule.scheduleJob(rule, function(){
     console.log('Running Schedule for create rates' + new Date().toISOString());
-    processRates();
+    functions.processRates();
   });
 })
