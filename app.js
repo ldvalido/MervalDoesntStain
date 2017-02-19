@@ -21,10 +21,15 @@ app.get('/getrate/:month', function (req, res) {
   }
 })
 
-app.get('/getCurrentRate', function(req,res) {
+app.get('/getCurrentDollarRate', function(req,res) {
   var rawData = fs.readFileSync(fileName, 'utf8');
   var fee = JSON.parse(rawData);
-  res.send( JSON.stringify(fee.rate) );
+  res.send( JSON.stringify(fee.dollarRate) );
+})
+app.get('/getCurrentEuroRate', function(req,res) {
+  var rawData = fs.readFileSync(fileName, 'utf8');
+  var fee = JSON.parse(rawData);
+  res.send( JSON.stringify(fee.euroRate) );
 })
 app.get('/process', function (req, res) {
     var result = functions.processRates();
