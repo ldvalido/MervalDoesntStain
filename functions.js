@@ -68,6 +68,7 @@ function processRates() {
   }
   fee.dollarRate = getCurrentDollarRate();
   fee.euroRate = getCurrentEuroRate();
+  fee.processDate = currentDate;
   var rawOutput = JSON.stringify( fee , null , '  ');
   fs.writeFile(fileName, rawOutput);
   fs.writeFile('./history/' + dateformat(currentDate,'yyyymmdd') + '.json', rawOutput);
