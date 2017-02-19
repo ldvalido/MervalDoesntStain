@@ -14,11 +14,24 @@ function pad(n, width, z) {
 }
 function getCurrentDollarRate() {
   var returnValue = '';
-  var url = 'http://www.webservicex.net/CurrencyConvertor.asmx/ConversionRate?FromCurrency=USD&ToCurrency=ARS';
+  var url = 'http://query.yahooapis.com/v1/public/yql?q=select%20*%20from%20yahoo.finance.xchange%20where%20pair%20in%20(%22USDARS%22)&env=store://datatables.org/alltableswithkeys';
   var response = request('GET',url);
   var rawResponse = response.getBody('utf8');
-  xml.parseString(rawResponse, function (err, result) {
-      returnValue = result.double._;
+  xml.parseString(rawResponse,
+     function (err, result) {
+      returnValue = result.query.results[0].rate[0].Bid[0];
+  });
+  return returnValue;
+}
+
+function getCurrentEuroRate() {
+  var returnValue = '';
+  var url = 'http://query.yahooapis.com/v1/public/yql?q=select%20*%20from%20yahoo.finance.xchange%20where%20pair%20in%20(%22EURUSD%22)&env=store://datatables.org/alltableswithkeys';
+  var response = request('GET',url);
+  var rawResponse = response.getBody('utf8');
+  xml.parseString(rawResponse,
+     function (err, result) {
+      returnValue = result.query.results[0].rate[0].Bid[0];
   });
   return returnValue;
 }
@@ -26,7 +39,8 @@ function processRates() {
   var currentDate = new Date();
   var fee = {
     processDate: currentDate,
-    rate: null,
+    dollarRate: null,
+    euroRate:null,
     values: []
   };
   var key='DLR%s2017';
@@ -52,7 +66,8 @@ function processRates() {
       }
     }
   }
-  fee.rate = getCurrentDollarRate();
+  fee.dollarRate = getCurrentDollarRate();
+  fee.euroRate = getCurrentEuroRate();
   var rawOutput = JSON.stringify( fee , null , '  ');
   fs.writeFile(fileName, rawOutput);
   fs.writeFile('./history/' + dateformat(currentDate,'yyyymmdd') + '.json', rawOutput);
