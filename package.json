@@ -27,6 +27,8 @@
     "date.format": "^1.1.2",
     "dateformat": "^2.0.0",
     "express": "^4.14.1",
+    "express-status-monitor": "^0.1.9",
+    "mocha": "^3.2.0",
     "node-schedule": "^1.2.0",
     "nodemon": "^1.11.0",
     "sync-request": "^4.0.1",
