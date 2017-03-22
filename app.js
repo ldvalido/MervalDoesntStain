@@ -31,6 +31,11 @@ app.get('/getCurrentEuroRate', function(req,res) {
   var fee = JSON.parse(rawData);
   res.send( JSON.stringify(fee.euroRate) );
 })
+app.get('/getBadlarRate', function(req,res) {
+  var rawData = fs.readFileSync(fileName,'utf8');
+  var fee = JSON.parse(rawData);
+  res.send( JSON.stringify (fee.badlarRate))
+})
 app.get('/process', function (req, res) {
     var result = functions.processRates();
     res.send(result);
