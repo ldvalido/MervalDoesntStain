@@ -2,7 +2,6 @@ var request = require('sync-request');
 var util = require('util');
 var fs = require('fs');
 var fileName = './dolar.json';
-var schedule = require('node-schedule');
 var xml = require('xml2js');
 var dateformat = require('dateformat');
 var $ = require('cheerio');
