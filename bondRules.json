@@ -28,5 +28,25 @@
 		"rentMode":"linked",
 		"firstRepaymentDate": "2016-01-21T00:00:00.000Z",
 		"expireDate": "2019-10-21T00:00:00.000Z"	
+	},
+	{
+		"symbol":"PMO18",
+		"interest":2.75,
+		"paymentFrequency":3,
+		"paymentMonth": 1,
+		"repayment": "fixLinked",
+		"repaymentAmount": 5.88,
+		"rentMode":"linked",
+		"firstRepaymentDate": "2016-04-30T00:00:00.000Z",
+		"expireDate": "2018-10-30T00:00:00.000Z"		
+	},
+	{
+		"symbol":"AA17",
+		"interest":7,
+		"paymentFrequency":6,
+		"paymentMonth": 4,
+		"repayment": "finish",
+		"rentMode":"fixedRent",
+		"expireDate": "2017-04-10T00:00:00.000Z"		
 	}
 ]
