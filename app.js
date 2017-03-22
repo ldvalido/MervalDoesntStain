@@ -5,6 +5,7 @@ var request = require('sync-request');
 var util = require('util');
 var fs = require('fs');
 var fileName = './dolar.json';
+var bondRulesFileName = './bondRules.json';
 var schedule = require('node-schedule');
 var xml = require('xml2js');
 var dateformat = require('dateformat');
@@ -39,23 +40,63 @@ app.get('/getBadlarRate', function(req,res) {
 app.get('/getAverageBadlarRate/:days', function(req,res) {
   var days = parseInt(req.params.days);
   var rawData = fs.readFileSync(fileName,'utf8');
-  var fee = JSON.parse(rawData);
-  var rates = fee.badlarValues.slice(0,days);
-  var sum = 0;
-  for (var i = 0; i < rates.length;i++){
-    sum += rates[i].rate;
-  }
-  var returnValue =  sum / days;
+  var financialData = JSON.parse(rawData);
+  var returnValue = functions.getBadlarAverage(financialData, days);
   res.send(JSON.stringify(returnValue.toFixed(2)));
 
+})
+
+app.get('/bond/:symbol/flow',function (req,res) {
+
+})
+app.get('/bond/:symbol/flow/:year/:month/:amount',function (req,res) {
+  var returnValue = {interest:0,repayment:0};
+  var month = parseInt(req.params.month);
+  var year = parseInt(req.params.year);
+  var amount = parseFloat(req.params.amount);
+  
+  var rawData = fs.readFileSync(bondRulesFileName, 'utf8');
+  var bondRules = JSON.parse(rawData);
+  
+  var rawProcFile = fs.readFileSync(fileName, 'utf8');
+  var financialData = JSON.parse(rawProcFile);
+
+  var bond = bondRules.find(bondRule => bondRule.symbol == req.params.symbol);
+  var hasPayment = (month - bond.paymentMonth) % bond.paymentFrequency == 0;
+  if (hasPayment) {
+    var expireDate = new Date(bond.expireDate);
+    var isExpired = (year > expireDate.getFullYear()) || (year == expireDate.getFullYear() && month > expireDate.getMonth() + 1);
+    if (!isExpired){
+      //Calculate Repayment
+      if (bond.repayment == 'finish') {
+        if ( (month == expireDate.getMonth() + 1) && (year == expireDate.getFullYear() ) ) {
+          returnValue.repayment = amount;
+        }
+      }
+      switch (bond.rentMode) {
+        case 'fixedRent':
+          returnValue.interest = amount * bond.interest * (bond.paymentFrequency / 12) / 100;
+          break;
+        case 'badlar':
+          var finalInterest = (functions.getBadlarAverage(financialData,bond.badlarAverage) + bond.interest) / 12 * bond.paymentFrequency;
+          returnValue.interest = (amount * finalInterest / 100).toFixed(2);
+          break;
+      }
+    }
+  }
+  res.send( JSON.stringify(returnValue) );
+})
+app.get('/bond/:symbol/tir',function (req,res) {
+  
 })
 app.get('/process', function (req, res) {
     var result = functions.processRates();
     res.send(result);
 })
 
+
 app.listen(process.env.PORT || 3000, function () {
-  console.log('Example app listening on port 3000!');
+  console.log('Merval does not stain app listening on port 3000!');
   var rule = new schedule.RecurrenceRule();
   rule.hour = 5;
   rule.minute = 0;

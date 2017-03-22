@@ -1,5 +1,5 @@
 {
-  "processDate": "2017-03-22T04:08:03.850Z",
+  "processDate": "2017-03-22T10:02:39.132Z",
   "values": [
     {
       "month": 1,
@@ -50,8 +50,8 @@
       "value": "17,7000"
     }
   ],
-  "dollarRate": "15.6200",
-  "euroRate": "1.0809",
+  "dollarRate": "15.6190",
+  "euroRate": "1.0799",
   "badlarValues": [
     {
       "date": "2017-04-20T03:00:00.000Z",

@@ -1,0 +1,21 @@
+[
+	{
+		"symbol":"TM18",
+		"interest":22.75,
+		"paymentFrequency":6,
+		"paymentMonth": 3,
+		"repayment": "finish",
+		"rentMode":"fixedRent",
+		"expireDate": "2018-03-05T00:00:00.000Z"
+	},
+	{
+		"symbol":"AM17",
+		"interest":2.00,
+		"paymentFrequency":3,
+		"paymentMonth": 3,
+		"repayment": "finish",
+		"rentMode":"badlar",
+		"badlarAverage": 10,
+		"expireDate": "2017-03-28T00:00:00.000Z"	
+	}
+]
