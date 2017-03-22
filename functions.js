@@ -13,6 +13,10 @@ function pad(n, width, z) {
   return n.length >= width ? n : new Array(width - n.length + 1).join(z) + n;
 }
 
+function dayDiff(first, second) {
+    return Math.round((second-first)/(1000*60*60*24));
+}
+
 function parseEuropeanDate(value) {
   var sections = value.split('/');
   return new Date(sections[2],sections[1],sections[0],0,0,0,0);
@@ -128,5 +132,5 @@ function processRates() {
 
 
 module.exports = {
-    pad,  getCurrentDollarRate, processRates, parseEuropeanDate, noOfmonths, roundNumber
+    pad,  getCurrentDollarRate, processRates, parseEuropeanDate, noOfmonths, roundNumber, dayDiff
 };

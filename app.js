@@ -20,6 +20,10 @@ app.get('/getrate/:year/:month', function (req, res) {
   res.send(JSON.stringify(returnValue));
 })
 
+app.get('/price/:symbol', function(req,res){
+  res.send(JSON.stringify(bonds.getBondValue(req.params.symbol)));
+})
+
 app.get('/getCurrentDollarRate', function(req,res) 
 {
   var returnValue = finance.getCurrentDollarRate();
@@ -59,7 +63,9 @@ app.get('/bond/:symbol/flow/:year/:month/:amount',function (req,res) {
   res.send( JSON.stringify(returnValue) );
 })
 app.get('/bond/:symbol/tir',function (req,res) {
-
+  var symbol = req.params.symbol;
+  var returnValue = bonds.calculateTIR(symbol);
+  res.send(JSON.stringify(returnValue));
 })
 app.get('/process', function (req, res) {
     var result = functions.processRates();
