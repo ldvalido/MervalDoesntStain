@@ -47,6 +47,11 @@ app.get('/getAverageBadlarRate/:days', function(req,res) {
 })
 
 app.get('/bond/:symbol/flow',function (req,res) {
+  var returnValue = [];
+  for (var i = 1; i <= 12; i++){
+
+  }
+  res.send(JSON.stringify(returnValue))
 
 })
 app.get('/bond/:symbol/flow/:year/:month/:amount',function (req,res) {
