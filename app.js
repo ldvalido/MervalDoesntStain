@@ -36,6 +36,19 @@ app.get('/getBadlarRate', function(req,res) {
   var fee = JSON.parse(rawData);
   res.send( JSON.stringify (fee.badlarRate))
 })
+app.get('/getAverageBadlarRate/:days', function(req,res) {
+  var days = parseInt(req.params.days);
+  var rawData = fs.readFileSync(fileName,'utf8');
+  var fee = JSON.parse(rawData);
+  var rates = fee.badlarValues.slice(0,days);
+  var sum = 0;
+  for (var i = 0; i < rates.length;i++){
+    sum += rates[i].rate;
+  }
+  var returnValue =  sum / days;
+  res.send(JSON.stringify(returnValue));
+
+})
 app.get('/process', function (req, res) {
     var result = functions.processRates();
     res.send(result);
