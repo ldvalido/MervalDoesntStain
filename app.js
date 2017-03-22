@@ -50,7 +50,7 @@ app.get('/bond/:symbol/flow',function (req,res) {
 
 })
 app.get('/bond/:symbol/flow/:year/:month/:amount',function (req,res) {
-  var returnValue = {interest:0,repayment:0};
+  var returnValue = {interest:0,repayment:0,total:0};
   var month = parseInt(req.params.month);
   var year = parseInt(req.params.year);
   var amount = parseFloat(req.params.amount);
@@ -68,20 +68,39 @@ app.get('/bond/:symbol/flow/:year/:month/:amount',function (req,res) {
     var isExpired = (year > expireDate.getFullYear()) || (year == expireDate.getFullYear() && month > expireDate.getMonth() + 1);
     if (!isExpired){
       //Calculate Repayment
-      if (bond.repayment == 'finish') {
-        if ( (month == expireDate.getMonth() + 1) && (year == expireDate.getFullYear() ) ) {
-          returnValue.repayment = amount;
-        }
+      switch(bond.repayment) {
+        case 'finish':
+          if ( (month == expireDate.getMonth() + 1) && (year == expireDate.getFullYear() ) ) {
+            returnValue.repayment = amount;
+          }
+          break;
+        case 'fixLinked':
+          var dolarRate = financialData.values.find( o => o.month == month);
+          returnValue.repayment = (bond.repaymentAmount * amount * parseFloat(dolarRate.value) / 100);
+          break;
       }
+      //Calculate Rent
       switch (bond.rentMode) {
         case 'fixedRent':
           returnValue.interest = amount * bond.interest * (bond.paymentFrequency / 12) / 100;
           break;
         case 'badlar':
           var finalInterest = (functions.getBadlarAverage(financialData,bond.badlarAverage) + bond.interest) / 12 * bond.paymentFrequency;
-          returnValue.interest = (amount * finalInterest / 100).toFixed(2);
+          returnValue.interest = (amount * finalInterest / 100);
+          break;
+        case 'linked':
+          var dateFirstRepayment = new Date(bond.firstRepaymentDate);
+          var qtyMonth = functions.noOfmonths(dateFirstRepayment, new Date(year,month-1,dateFirstRepayment.getDate()+1,0,0,0,0))
+          var payments = qtyMonth / bond.paymentFrequency;
+          var pendingPayment = 100 - payments *  bond.repaymentAmount;
+          var rentPercentage = pendingPayment * bond.interest / 12 * bond.paymentFrequency / 100;
+          var rent = amount * rentPercentage / 100;
+          var dolarRate = financialData.values.find( o => o.month == month);
+          var rentLocalCurrency = rent * parseFloat( dolarRate.value);
+          returnValue.interest = rentLocalCurrency;
           break;
       }
+      returnValue.total = returnValue.interest + returnValue.repayment;
     }
   }
   res.send( JSON.stringify(returnValue) );

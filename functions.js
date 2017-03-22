@@ -17,6 +17,21 @@ function parseEuropeanDate(value) {
   var sections = value.split('/');
   return new Date(sections[2],sections[1],sections[0],0,0,0,0);
 }
+function roundNumber(value,decimalQuantity) {
+  var factor = 1;
+  for (var i = 1; i<= decimalQuantity; i++){
+    factor = factor * 10;
+  }
+  return Math.round(value * factor) / factor;
+}
+
+function noOfmonths(date1, date2) {
+    var Nomonths;
+    Nomonths= (date2.getFullYear() - date1.getFullYear()) * 12;
+    Nomonths-= date1.getMonth() + 1;
+    Nomonths+= date2.getMonth() +1; // we should add + 1 to get correct month number
+    return Nomonths <= 0 ? 0 : Nomonths;
+}
 function getCurrentDollarRate() {
   var returnValue = '';
   var url = 'http://query.yahooapis.com/v1/public/yql?q=select%20*%20from%20yahoo.finance.xchange%20where%20pair%20in%20(%22USDARS%22)&env=store://datatables.org/alltableswithkeys';
@@ -116,5 +131,5 @@ function processRates() {
 
 
 module.exports = {
-    pad,  getCurrentDollarRate, processRates, parseEuropeanDate, getBadlarAverage
+    pad,  getCurrentDollarRate, processRates, parseEuropeanDate, getBadlarAverage, noOfmonths, roundNumber
 };
