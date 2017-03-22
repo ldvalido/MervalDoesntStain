@@ -55,16 +55,6 @@ function getCurrentEuroRate() {
   });
   return returnValue;
 }
-function getBadlarAverage(financialData, days) {
-
-  var rates = financialData.badlarValues.slice(0,days);
-  var sum = 0;
-  for (var i = 0; i < rates.length;i++){
-    sum += rates[i].rate;
-  }
-  var returnValue =  sum / days;
-  return returnValue;
-}
 function getBadlarRate() {
   var returnValue = [];
   var url = 'http://www.ambito.com/economia/mercados/tasas/info/?ric=ARSBADPR1MD=RR';
@@ -84,6 +74,25 @@ function getBadlarRate() {
   
   return returnValue;
 }
+
+function getRateByYear(node, fee, year){
+  var key='DLR%s' + year;
+   for (var i = 1; i <= 12; i++) {
+
+    var selector = util.format(".table-rofex > tbody > tr:contains('%s') td", util.format(key, pad(i,2)  ) );
+
+    var value = node(selector).first().next().text();
+    if (value != '') {
+      var el = fee.dollarValues.find ( o => o.month == i && o.year == year);
+      if (el){
+        el.value= value;
+      }else{
+        fee.dollarValues.push({year:year, month: i, value: value});
+      }
+    }
+  }
+  return fee;
+}
 function processRates() {
   var currentDate = new Date();
   var fee = {
@@ -91,10 +100,9 @@ function processRates() {
     dollarRate: null,
     euroRate:null,
     badlarRate: null,
-    values: [],
+    dollarValues: [],
     badlarValues:[]
   };
-  var key='DLR%s2017';
   var url = 'https://www.rofex.com.ar';
 
   var rawData = fs.readFileSync(fileName, 'utf8');
@@ -103,20 +111,9 @@ function processRates() {
   var html = request('GET',url);
   var rawHtml = html.getBody('utf8');
   var node = $.load(rawHtml);
-  for (var i = 1; i <= 12; i++) {
-
-    var selector = util.format(".table-rofex > tbody > tr:contains('%s') td", util.format(key, pad(i,2)  ) );
-
-    var value = node(selector).first().next().text();
-    if (value != '') {
-      var el = fee.values.find ( o => o.month == i);
-      if (el){
-        el.value= value;
-      }else{
-        fee.values.push({month: i, value: value});
-      }
-    }
-  }
+  var nowDate = new Date();
+  getRateByYear(node, fee,nowDate.getFullYear());
+  getRateByYear(node, fee,nowDate.getFullYear() + 1);
   fee.dollarRate = getCurrentDollarRate();
   fee.euroRate = getCurrentEuroRate();
   fee.processDate = currentDate;
@@ -131,5 +128,5 @@ function processRates() {
 
 
 module.exports = {
-    pad,  getCurrentDollarRate, processRates, parseEuropeanDate, getBadlarAverage, noOfmonths, roundNumber
+    pad,  getCurrentDollarRate, processRates, parseEuropeanDate, noOfmonths, roundNumber
 };

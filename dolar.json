@@ -1,58 +1,89 @@
 {
-  "processDate": "2017-03-22T10:02:39.132Z",
-  "values": [
+  "dollarRate": "15.5690",
+  "euroRate": "1.0816",
+  "processDate": "2017-03-22T18:01:56.672Z",
+  "dollarValues": [
     {
+      "year": 2017,
       "month": 1,
       "value": "16,023"
     },
     {
+      "year": 2017,
       "month": 2,
       "value": "15,7500"
     },
     {
+      "year": 2017,
       "month": 3,
       "value": "15,6710"
     },
     {
+      "year": 2017,
       "month": 4,
       "value": "15,8710"
     },
     {
+      "year": 2017,
       "month": 5,
       "value": "16,1060"
     },
     {
+      "year": 2017,
       "month": 6,
       "value": "16,3200"
     },
     {
+      "year": 2017,
       "month": 7,
       "value": "16,5500"
     },
     {
+      "year": 2017,
       "month": 8,
       "value": "16,8000"
     },
     {
+      "year": 2017,
       "month": 9,
       "value": "17,0200"
     },
     {
+      "year": 2017,
       "month": 10,
       "value": "17,2800"
     },
     {
+      "year": 2017,
       "month": 11,
       "value": "17,5000"
     },
     {
+      "year": 2017,
       "month": 12,
       "value": "17,7000"
+    },
+    {
+      "year": 2018,
+      "month": 1,
+      "value": "17,9100"
+    },
+    {
+      "year": 2018,
+      "month": -1,
+      "value": "21,21"
+    },
+    {
+      "year": 2019,
+      "month": -1,
+      "value": "23,53"
     }
   ],
-  "dollarRate": "15.6190",
-  "euroRate": "1.0799",
   "badlarValues": [
+    {
+      "date": "2017-04-20T03:00:00.000Z",
+      "rate": 19.438
+    },
     {
       "date": "2017-04-20T03:00:00.000Z",
       "rate": 19.438
