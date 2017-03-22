@@ -46,7 +46,7 @@ app.get('/getAverageBadlarRate/:days', function(req,res) {
     sum += rates[i].rate;
   }
   var returnValue =  sum / days;
-  res.send(JSON.stringify(returnValue));
+  res.send(JSON.stringify(returnValue.toFixed(2)));
 
 })
 app.get('/process', function (req, res) {
