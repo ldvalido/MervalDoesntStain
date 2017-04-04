@@ -1,11 +1,14 @@
 var request = require('sync-request');
+var requestAsync = require('request');
 var util = require('util');
 var fs = require('fs');
 var fileName = './dolar.json';
 var xml = require('xml2js');
 var dateformat = require('dateformat');
 var $ = require('cheerio');
-
+var requestify = require('requestify');
+var synchro = require('./synchro.js')
+var env = require('./env.js')
 function pad(n, width, z) {
   z = z || '0';
   n = n + '';
@@ -96,6 +99,53 @@ function getRateByYear(node, fee, year){
   }
   return fee;
 }
+function processFundMutual(res,cb){
+  var returnValue = {
+    companyManager:[]
+  };
+  var url = 'http://fondosargentina.org.ar/scripts/cfn_CAFCIHome.html';
+  var urlCompanyManager = 'http://cafci.org.ar/Scripts/cfn_SGerentesXMLList.asp';
+  var urlSheet = 'http://www.cafci.org.ar/Scripts/cfn_PlanillaDiariaXMLList.asp';
+  var urlListCompanyManager = env.settings.apiUrl + 'companymanager';
+  //var url = 'http://www.google.com.ar';
+  requestAsync.get(urlCompanyManager, function(err, response, body) {
+    //var rawCookies = response.headers['set-cookie'];
+    //var urlSheet = 'http://www.cafci.org.ar/Scripts/cfn_PlanillaDiariaXMLList.asp';
+    xml.parseString(response.body, function (err, result) {
+      var companyManagers = result.Coleccion.Datos[0].Dato;
+      for (var i = 0; i < companyManagers.length; i++) {
+        var companyRaw = companyManagers[i];
+        var company = {
+          externalId: companyRaw.SGI[0],
+          name: companyRaw.SGN[0]
+        };
+        returnValue.companyManager.push(company);
+      }
+      requestify.get(urlListCompanyManager).then( (res) => {
+        var lst = JSON.parse(res.body);
+        synchro.synch(lst, returnValue.companyManager,
+            {
+              remoteField: 'externalId', 
+              localField: 'externalId', 
+              direction: synchro.direction.onlyRemote
+            }, 
+            function (syncEl) {
+              requestify.request(urlListCompanyManager,
+              {
+                method:'POST',
+                body: {data:JSON.stringify(syncEl)},
+                dataType: 'json'
+              }).then( function (res) {
+                res.toString();
+              });
+            });
+            cb(res,returnValue);
+      } );
+    });
+
+    
+  });
+}
 function processRates() {
   var currentDate = new Date();
   var fee = {
@@ -131,5 +181,5 @@ function processRates() {
 
 
 module.exports = {
-    pad,  getCurrentDollarRate, processRates, parseEuropeanDate, noOfmonths, roundNumber, dayDiff
+    pad,  getCurrentDollarRate, processRates, parseEuropeanDate, noOfmonths, roundNumber, dayDiff, processFundMutual
 };
