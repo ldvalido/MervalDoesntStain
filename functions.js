@@ -112,35 +112,39 @@ function processFundMutual(res,cb){
     //var rawCookies = response.headers['set-cookie'];
     //var urlSheet = 'http://www.cafci.org.ar/Scripts/cfn_PlanillaDiariaXMLList.asp';
     xml.parseString(response.body, function (err, result) {
-      var companyManagers = result.Coleccion.Datos[0].Dato;
-      for (var i = 0; i < companyManagers.length; i++) {
-        var companyRaw = companyManagers[i];
-        var company = {
-          externalId: companyRaw.SGI[0],
-          name: companyRaw.SGN[0]
-        };
-        returnValue.companyManager.push(company);
-      }
-      requestify.get(urlListCompanyManager).then( (res) => {
-        var lst = JSON.parse(res.body);
-        synchro.synch(lst, returnValue.companyManager,
-            {
-              remoteField: 'externalId', 
-              localField: 'externalId', 
-              direction: synchro.direction.onlyRemote
-            }, 
-            function (syncEl) {
-              requestify.request(urlListCompanyManager,
+      if (result.Coleccion.Datos) {
+        var companyManagers = result.Coleccion.Datos[0].Dato;
+        for (var i = 0; i < companyManagers.length; i++) {
+          var companyRaw = companyManagers[i];
+          var company = {
+            externalId: companyRaw.SGI[0],
+            name: companyRaw.SGN[0]
+          };
+          returnValue.companyManager.push(company);
+        }
+        requestify.get(urlListCompanyManager).then( (res) => {
+          var lst = JSON.parse(res.body);
+          synchro.synch(lst, returnValue.companyManager,
               {
-                method:'POST',
-                body: {data:JSON.stringify(syncEl)},
-                dataType: 'json'
-              }).then( function (res) {
-                res.toString();
+                remoteField: 'externalId', 
+                localField: 'externalId', 
+                direction: synchro.direction.onlyRemote
+              }, 
+              function (syncEl) {
+                requestify.request(urlListCompanyManager,
+                {
+                  method:'POST',
+                  body: {data:JSON.stringify(syncEl)},
+                  dataType: 'json'
+                }).then( function (res) {
+                  res.toString();
+                });
               });
-            });
-            cb(res,returnValue);
-      } );
+              cb(res,returnValue);
+        } );
+      } else {
+        cb(res,returnValue);
+      }
     });
 
     
