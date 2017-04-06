@@ -10,9 +10,11 @@ function synch( remoteSource, localSource, options, syncCb) {
 }
 
 function synchroRemote( remoteSource, localSource, options, syncCb) {
-	var delta = _.filter(localSource, el => {
-		var pos = _.findIndex(remoteSource, (rEl) => {
-			rEl[options.remoteField] == el[options.localField]
+	var delta = _.filter(localSource, function(el) {
+		var pos = _.findIndex(remoteSource,function (rEl) {
+			if (rEl[options.remoteField] == el[options.localField]){
+				return true;
+			}
 		});
 		return pos == -1;
 	});

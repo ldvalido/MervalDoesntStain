@@ -7,8 +7,8 @@ var xml = require('xml2js');
 var dateformat = require('dateformat');
 var $ = require('cheerio');
 var requestify = require('requestify');
-var synchro = require('./synchro.js')
-var env = require('./env.js')
+var synchro = require('./synchro.js');
+var config = require('config');
 function pad(n, width, z) {
   z = z || '0';
   n = n + '';
@@ -106,8 +106,9 @@ function processFundMutual(res,cb){
   var url = 'http://fondosargentina.org.ar/scripts/cfn_CAFCIHome.html';
   var urlCompanyManager = 'http://cafci.org.ar/Scripts/cfn_SGerentesXMLList.asp';
   var urlSheet = 'http://www.cafci.org.ar/Scripts/cfn_PlanillaDiariaXMLList.asp';
-  var urlListCompanyManager = env.settings.apiUrl + 'companymanager';
-  //var url = 'http://www.google.com.ar';
+  var apiUrl = config.get('apiUrl');
+  console.log('url:' + apiUrl);
+  var urlListCompanyManager = apiUrl + 'companymanager';
   requestAsync.get(urlCompanyManager, function(err, response, body) {
     //var rawCookies = response.headers['set-cookie'];
     //var urlSheet = 'http://www.cafci.org.ar/Scripts/cfn_PlanillaDiariaXMLList.asp';
@@ -117,8 +118,9 @@ function processFundMutual(res,cb){
         for (var i = 0; i < companyManagers.length; i++) {
           var companyRaw = companyManagers[i];
           var company = {
-            externalId: companyRaw.SGI[0],
-            name: companyRaw.SGN[0]
+            ExternalId:parseInt( companyRaw.SGI[0]),
+            Description: companyRaw.SGN[0],
+            Id: 0
           };
           returnValue.companyManager.push(company);
         }
@@ -126,18 +128,16 @@ function processFundMutual(res,cb){
           var lst = JSON.parse(res.body);
           synchro.synch(lst, returnValue.companyManager,
               {
-                remoteField: 'externalId', 
-                localField: 'externalId', 
+                remoteField: 'ExternalId', 
+                localField: 'ExternalId', 
                 direction: synchro.direction.onlyRemote
               }, 
               function (syncEl) {
-                requestify.request(urlListCompanyManager,
-                {
+                requestAsync({
                   method:'POST',
-                  body: {data:JSON.stringify(syncEl)},
-                  dataType: 'json'
-                }).then( function (res) {
-                  res.toString();
+                  headers: { 'Content-Type': 'application/json' },
+                  url: urlListCompanyManager,
+                  body: JSON.stringify( syncEl) 
                 });
               });
               cb(res,returnValue);
