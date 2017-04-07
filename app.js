@@ -74,6 +74,12 @@ app.get('/mutualfund', function(req,res) {
 
 })
 
+app.get('/bondupdate', function (req,res) {
+  var result = functions.updateBondsRate(res, function(res, result) {
+    res.send(JSON.stringify(result))
+  })
+});
+
 
 app.listen(process.env.PORT || 3000, function () {
   console.log('Merval does not stain app listening on port 3000!');

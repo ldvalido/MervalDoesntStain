@@ -1,3 +1,7 @@
 {
-	"apiUrl": "http://localhost:1064/API/222/"
+	"apiUrl": "http://localhost:1064/API/222/",
+	"rofexUrl": "https://www.rofex.com.ar",
+	"mutualFund": {
+		"companyManager":"http://cafci.org.ar/Scripts/cfn_SGerentesXMLList.asp"
+	}
 }

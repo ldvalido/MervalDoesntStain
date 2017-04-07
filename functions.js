@@ -9,6 +9,9 @@ var $ = require('cheerio');
 var requestify = require('requestify');
 var synchro = require('./synchro.js');
 var config = require('config');
+var promise = require('promise');
+var bondManager = require('./bonds.js');
+
 function pad(n, width, z) {
   z = z || '0';
   n = n + '';
@@ -104,10 +107,11 @@ function processFundMutual(res,cb){
     companyManager:[]
   };
   var url = 'http://fondosargentina.org.ar/scripts/cfn_CAFCIHome.html';
-  var urlCompanyManager = 'http://cafci.org.ar/Scripts/cfn_SGerentesXMLList.asp';
+  var urlCompanyManager = config.get('mutualFund.companyManager');
+  
   var urlSheet = 'http://www.cafci.org.ar/Scripts/cfn_PlanillaDiariaXMLList.asp';
   var apiUrl = config.get('apiUrl');
-  console.log('url:' + apiUrl);
+  
   var urlListCompanyManager = apiUrl + 'companymanager';
   requestAsync.get(urlCompanyManager, function(err, response, body) {
     //var rawCookies = response.headers['set-cookie'];
@@ -160,8 +164,7 @@ function processRates() {
     dollarValues: [],
     badlarValues:[]
   };
-  var url = 'https://www.rofex.com.ar';
-
+  var url = config.get('rofexUrl');
   var rawData = fs.readFileSync(fileName, 'utf8');
   var fee = JSON.parse(rawData);
 
@@ -183,7 +186,39 @@ function processRates() {
   return rawOutput;
 }
 
+function updateBondsRate(res, cb) {
+  var returnValue = 
+  {
+    ok: [],
+    err: []
+  };
+  var apiUrl = config.get('apiUrl');
+  var urlBond = apiUrl + 'titles';
+  requestAsync.get(urlBond, function(err, response, body) {
+    var lst = JSON.parse(response.body);
+    for (var i = 0; i < lst.length; i++) {
+      var title = lst[i];
+      title.Price = bondManager.getBondValue(title.Symbol);
+//TODO: Calculate TIR
+      requestAsync({
+                  method:'PUT',
+                  headers: { 'Content-Type': 'application/json' },
+                  url: urlBond,
+                  body: JSON.stringify( title) 
+                },
+      function(err, res, body) {
+        if (!err){
+          returnValue.ok.push(title);
+        }else{
+          returnValue.err.push(title);
+        }
+      });
+    }
+    cb(res,returnValue);
+  });
+}
+
 
 module.exports = {
-    pad,  getCurrentDollarRate, processRates, parseEuropeanDate, noOfmonths, roundNumber, dayDiff, processFundMutual
+    pad,  getCurrentDollarRate, processRates, parseEuropeanDate, noOfmonths, roundNumber, dayDiff, processFundMutual, updateBondsRate
 };
