@@ -9,7 +9,7 @@ function getRate(month, year) {
     if (el == null){
       el = financialData.dollarValues.find ( o => o.month == -1 && o.year ==  year);
     }
-  	return el;
+    return el;
 }
 
 function getCurrentDollarRate(month, year) {

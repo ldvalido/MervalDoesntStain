@@ -6,22 +6,25 @@ var fileName = './dolar.json';
 var xml = require('xml2js');
 var dateformat = require('dateformat');
 var $ = require('cheerio');
-var requestify = require('requestify');
 var synchro = require('./synchro.js');
 var config = require('config');
 var promise = require('promise');
 var bondManager = require('./bonds.js');
+var mervalProxy = require('./mervalitoProxy.js');
+var yahooFinance = require('./yahooFinanceManager.js');
+var _ = require('lodash');
 
 function pad(n, width, z) {
   z = z || '0';
   n = n + '';
   return n.length >= width ? n : new Array(width - n.length + 1).join(z) + n;
 }
-
-function dayDiff(first, second) {
-    return Math.round((second-first)/(1000*60*60*24));
+function normalizeValue(value) {
+  if (typeof value === 'string') {
+    return value.replace(',','.'); 
+  }
+  return value;
 }
-
 function parseEuropeanDate(value) {
   var sections = value.split('/');
   return new Date(sections[2],sections[1],sections[0],0,0,0,0);
@@ -32,14 +35,6 @@ function roundNumber(value,decimalQuantity) {
     factor = factor * 10;
   }
   return Math.round(value * factor) / factor;
-}
-
-function noOfmonths(date1, date2) {
-    var Nomonths;
-    Nomonths= (date2.getFullYear() - date1.getFullYear()) * 12;
-    Nomonths-= date1.getMonth() + 1;
-    Nomonths+= date2.getMonth() +1; // we should add + 1 to get correct month number
-    return Nomonths <= 0 ? 0 : Nomonths;
 }
 function getCurrentDollarRate() {
   var returnValue = '';
@@ -93,10 +88,11 @@ function getRateByYear(node, fee, year){
     var value = node(selector).first().next().text();
     if (value != '') {
       var el = fee.dollarValues.find ( o => o.month == i && o.year == year);
+      var normalizedValue =  parseFloat(normalizeValue(value));
       if (el){
-        el.value= value;
+        el.value = normalizedValue;
       }else{
-        fee.dollarValues.push({year:year, month: i, value: value});
+        fee.dollarValues.push({year:year, month: i, value: normalizedValue});
       }
     }
   }
@@ -128,8 +124,7 @@ function processFundMutual(res,cb){
           };
           returnValue.companyManager.push(company);
         }
-        requestify.get(urlListCompanyManager).then( (res) => {
-          var lst = JSON.parse(res.body);
+        mervalProxy.getCompanyManagers().then( lst => {
           synchro.synch(lst, returnValue.companyManager,
               {
                 remoteField: 'ExternalId', 
@@ -137,12 +132,7 @@ function processFundMutual(res,cb){
                 direction: synchro.direction.onlyRemote
               }, 
               function (syncEl) {
-                requestAsync({
-                  method:'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  url: urlListCompanyManager,
-                  body: JSON.stringify( syncEl) 
-                });
+                mervalProxy.updateCompanyManager(syncEl);
               });
               cb(res,returnValue);
         } );
@@ -150,8 +140,6 @@ function processFundMutual(res,cb){
         cb(res,returnValue);
       }
     });
-
-    
   });
 }
 function processRates() {
@@ -192,33 +180,38 @@ function updateBondsRate(res, cb) {
     ok: [],
     err: []
   };
-  var apiUrl = config.get('apiUrl');
-  var urlBond = apiUrl + 'titles';
-  requestAsync.get(urlBond, function(err, response, body) {
-    var lst = JSON.parse(response.body);
+  mervalProxy.getBonds().then ( lst => {
     for (var i = 0; i < lst.length; i++) {
       var title = lst[i];
       title.Price = bondManager.getBondValue(title.Symbol);
-//TODO: Calculate TIR
-      requestAsync({
-                  method:'PUT',
-                  headers: { 'Content-Type': 'application/json' },
-                  url: urlBond,
-                  body: JSON.stringify( title) 
-                },
-      function(err, res, body) {
-        if (!err){
-          returnValue.ok.push(title);
-        }else{
-          returnValue.err.push(title);
-        }
-      });
+      title.TIR = bondManager.calculateTIR(title).plainTIR;
+      mervalProxy.updateTitle(title)
+        .then( el => {returnValue.ok.push(title);},
+              el => {returnValue.err.push(title)});
     }
     cb(res,returnValue);
-  });
+  })
+}
+function updateCurrency() {
+  return new promise( (resolve, reject) => {
+    var returnValue = [];
+    mervalProxy.getCurrencies().then ( lst => {
+      _.forEach (lst, function (currency) {
+        if (currency.Id != 1) {
+          yahooFinance.getRate('USD' + currency.Symbol).then(res => {
+            currency.Rate = res;
+            mervalProxy.updateCurrency(currency).then(
+              el => {
+                returnValue.push(el); 
+              });
+          })
+        }
+      });
+      return resolve(returnValue);
+    })
+  })
 }
 
-
 module.exports = {
-    pad,  getCurrentDollarRate, processRates, parseEuropeanDate, noOfmonths, roundNumber, dayDiff, processFundMutual, updateBondsRate
+    pad,  getCurrentDollarRate, processRates, parseEuropeanDate, roundNumber, processFundMutual, updateBondsRate, updateCurrency
 };

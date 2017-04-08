@@ -4,6 +4,7 @@ var finance = require('./financeData.js');
 var schedule = require('node-schedule');
 var functions = require('./functions.js');
 var bonds = require('./bonds.js');
+var mervalito = require('./mervalitoProxy.js')
 const statusMonitor = require('express-status-monitor')();
 
 app.use(statusMonitor);
@@ -39,44 +40,52 @@ app.get('/getAverageBadlarRate/:days', function(req,res) {
 
 app.get('/bond/:symbol/flow/:amount',function (req,res) {
   var returnValue = [];
-
   var symbol = req.params.symbol;
   var amount = parseFloat(req.params.amount);
-  var returnValue = bonds.getCashFlow(symbol, amount);
-  res.send(JSON.stringify(returnValue))
-
+  mervalito.getBondByTitle(symbol).then( (title) => {
+      var returnValue = bonds.getCashFlow(title, amount);
+      res.send(JSON.stringify(returnValue));
+    });
 })
 app.get('/bond/:symbol/flow/:year/:month/:amount',function (req,res) {
-  
   var month = parseInt(req.params.month);
   var year = parseInt(req.params.year);
   var amount = parseFloat(req.params.amount);
-  
-  var returnValue = bonds.getPayment(req.params.symbol,year,month,amount);
-
-  res.send( JSON.stringify(returnValue) );
+  var symbol = req.params.symbol;
+  mervalito.getBondByTitle(symbol).then( (title) => {
+    var returnValue = bonds.getPayment(title,year,month,amount);
+    res.send( JSON.stringify(returnValue) );
+  });
 })
 app.get('/bond/:symbol/tir',function (req,res) {
+  var returnValue = [];
   var symbol = req.params.symbol;
-  var returnValue = bonds.calculateTIR(symbol);
-  res.send(JSON.stringify(returnValue));
+  mervalito.getBondByTitle(symbol).then( (title) => {
+      var returnValue = bonds.calculateTIR(title);
+      res.send(JSON.stringify(returnValue));
+    });
 })
 app.get('/process', function (req, res) {
     var result = functions.processRates();
     res.send(result);
 })
 
-app.get('/mutualfund', function(req,res) {
+app.get('/updatemutualfund', function(req,res) {
   var result = functions.processFundMutual( res, function(res, result) {
       res.send(JSON.stringify( result));
     }
   );
-
 })
 
-app.get('/bondupdate', function (req,res) {
+app.get('/updatebond', function (req,res) {
   var result = functions.updateBondsRate(res, function(res, result) {
     res.send(JSON.stringify(result))
+  })
+});
+
+app.get('/updatecurrency', function (req,res) {
+  var result = functions.updateCurrency().then(lst => {
+    res.send(JSON.stringify(lst));
   })
 });
 
