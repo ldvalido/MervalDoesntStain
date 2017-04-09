@@ -21,8 +21,9 @@ app.get('/price/:symbol', function(req,res){
 
 app.get('/getCurrentDollarRate', function(req,res) 
 {
-  var returnValue = finance.getCurrentDollarRate();
-  res.send( JSON.stringify(returnValue) );
+  functions.getCurrentDollarRate().then(rate => {
+    res.send( JSON.stringify(rate) );
+  });
 })
 app.get('/getCurrentEuroRate', function(req,res) {
   var returnValue = finance.getCurrentEuroRate();

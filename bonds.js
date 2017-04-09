@@ -1,5 +1,4 @@
 
-var fs = require('fs');
 var functions = require('./functions.js');
 var financeData = require('./financeData.js');
 var bondRulesFileName = './bondRules.json';
@@ -7,14 +6,6 @@ var util = require('util');
 var utils = require('./utils.js');
 var request = require('sync-request');
 
-function getBondRule(symbol) {
-	var rawProcFile = fs.readFileSync(bondRulesFileName, 'utf8');
-	var bondRules = JSON.parse(rawProcFile);
-
-	var bond = bondRules.find(bondRule => bondRule.symbol == symbol);
-	return bond;
-
-}
 function getCashFlow(title, amount) {
   var returnValue = [];
   var nowDate = new Date();
@@ -28,17 +19,6 @@ function getCashFlow(title, amount) {
     returnValue.push(el);
   }
   return returnValue;
-}
-function getBondValue(symbol) {
-	var rawUrl = 'https://query.yahooapis.com/v1/public/yql';
-	var query = util.format('select * from yahoo.finance.quotes where symbol in ("%s")',symbol + '.BA');
-	var store = 'store://datatables.org/alltableswithkeys';
-	var url = util.format('%s?q=%s&format=json&env=%s&callback=',rawUrl,encodeURIComponent(query),encodeURIComponent(store));
-  	
-  	var rawJson = request('GET',url);
-  	var jsonResponse = rawJson.getBody('utf8');
-  	var obj = JSON.parse (jsonResponse);
-  	return obj.query.results.quote.Ask;
 }
 function calculateTIR(title) {
 	var returnValue = {symbol: title.Symbol, plainTIR: 0};
@@ -102,5 +82,5 @@ function getPayment(title,year,month, amount)
 	return returnValue;
 }
 module.exports = {
-	getPayment, getCashFlow, calculateTIR, getBondValue
+	getPayment, getCashFlow, calculateTIR
 }

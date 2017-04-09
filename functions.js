@@ -37,27 +37,19 @@ function roundNumber(value,decimalQuantity) {
   return Math.round(value * factor) / factor;
 }
 function getCurrentDollarRate() {
-  var returnValue = '';
-  var url = 'http://query.yahooapis.com/v1/public/yql?q=select%20*%20from%20yahoo.finance.xchange%20where%20pair%20in%20(%22USDARS%22)&env=store://datatables.org/alltableswithkeys';
-  var response = request('GET',url);
-  var rawResponse = response.getBody('utf8');
-  xml.parseString(rawResponse,
-     function (err, result) {
-      returnValue = result.query.results[0].rate[0].Bid[0];
+  return new promise ( (resolve, reject) => {
+    yahooFinance.getRate('USDARS').
+      then( res => { return resolve(res) }, 
+        err => { return reject(err) });  
   });
-  return returnValue;
 }
 
 function getCurrentEuroRate() {
-  var returnValue = '';
-  var url = 'http://query.yahooapis.com/v1/public/yql?q=select%20*%20from%20yahoo.finance.xchange%20where%20pair%20in%20(%22EURUSD%22)&env=store://datatables.org/alltableswithkeys';
-  var response = request('GET',url);
-  var rawResponse = response.getBody('utf8');
-  xml.parseString(rawResponse,
-     function (err, result) {
-      returnValue = result.query.results[0].rate[0].Bid[0];
+  return new promise ( (resolve, reject) => {
+    yahooFinance.getRate('EURUSD').
+      then( res => { return resolve(res) }, 
+        err => { return reject(err) });  
   });
-  return returnValue;
 }
 function getBadlarRate() {
   var returnValue = [];
@@ -181,14 +173,17 @@ function updateBondsRate(res, cb) {
     err: []
   };
   mervalProxy.getBonds().then ( lst => {
-    for (var i = 0; i < lst.length; i++) {
-      var title = lst[i];
-      title.Price = bondManager.getBondValue(title.Symbol);
-      title.TIR = bondManager.calculateTIR(title).plainTIR;
-      mervalProxy.updateTitle(title)
-        .then( el => {returnValue.ok.push(title);},
-              el => {returnValue.err.push(title)});
-    }
+    _.forEach (lst, function(title) {
+      yahooFinance.getBondValue(title.Symbol).then( value => {
+          if (value) {
+            title.Price = value;  
+          }
+          title.TIR = bondManager.calculateTIR(title).plainTIR;
+          mervalProxy.updateTitle(title)
+            .then( el => {returnValue.ok.push(title);},
+                   el => {returnValue.err.push(title)});
+      })
+    });
     cb(res,returnValue);
   })
 }
