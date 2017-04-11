@@ -30,8 +30,9 @@ app.get('/getCurrentDollarRate', function(req,res)
   });
 })
 app.get('/getCurrentEuroRate', function(req,res) {
-  var returnValue = finance.getCurrentEuroRate();
-  res.send( JSON.stringify(returnValue) );
+  functions.getCurrentEuroRate().then(rate => {
+    res.send( JSON.stringify(rate) );
+  });
 })
 app.get('/getBadlarRate', function(req,res) {
   var returnValue = finance.getBadlarRate();

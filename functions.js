@@ -208,5 +208,5 @@ function updateCurrency() {
 }
 
 module.exports = {
-    pad,  getCurrentDollarRate, processRates, parseEuropeanDate, roundNumber, processFundMutual, updateBondsRate, updateCurrency
+    pad,  getCurrentDollarRate, getCurrentEuroRate, processRates, parseEuropeanDate, roundNumber, processFundMutual, updateBondsRate, updateCurrency
 };
