@@ -5,6 +5,7 @@ var schedule = require('node-schedule');
 var functions = require('./functions.js');
 var bonds = require('./bonds.js');
 var mervalito = require('./mervalitoProxy.js')
+var yahooFinance = require('./yahooFinanceManager.js')
 const statusMonitor = require('express-status-monitor')();
 
 app.use(statusMonitor);
@@ -16,7 +17,11 @@ app.get('/getrate/:year/:month', function (req, res) {
 })
 
 app.get('/price/:symbol', function(req,res){
-  res.send(JSON.stringify(bonds.getBondValue(req.params.symbol)));
+  console.log(req.params.symbol);
+  yahooFinance.getBondValue(req.params.symbol).then( value => {
+    res.send(JSON.stringify(value));
+  }
+  );
 })
 
 app.get('/getCurrentDollarRate', function(req,res) 
