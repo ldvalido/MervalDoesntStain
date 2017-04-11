@@ -17,7 +17,6 @@ app.get('/getrate/:year/:month', function (req, res) {
 })
 
 app.get('/price/:symbol', function(req,res){
-  console.log(req.params.symbol);
   yahooFinance.getBondValue(req.params.symbol).then( value => {
     res.send(JSON.stringify(value));
   }
