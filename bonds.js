@@ -38,10 +38,10 @@ function getPayment(title,year,month, amount)
 	var rentMonth = rentDate.getMonth() + 1;
 
 	var hasPayment = (month - rentMonth) % (title.PaymentPeriod.Days / 30) == 0;
-  	if (hasPayment) {
-	    var expireDate = new Date(title.EndDate);
-	    var isExpired = (year > expireDate.getFullYear()) || (year == expireDate.getFullYear() && month > expireDate.getMonth() + 1);
-	    if (!isExpired){
+	var expireDate = new Date(title.EndDate);
+	var isExpired = (year > expireDate.getFullYear()) || (year == expireDate.getFullYear() && month > expireDate.getMonth() + 1);
+  	
+  	if (hasPayment && !isExpired) {
 	      //Calculate Repayment
 	      switch(title.PaymentPeriod.Id) {
 	        case 1:
@@ -75,7 +75,7 @@ function getPayment(title,year,month, amount)
 	          break;
 	        case 6: // Bonos Dolarizados
 	        	returnValue.interest = amount * title.RentAmount * title.PaymentPeriod.Days / 360 / 100;
-	        	var qCurrency = merval.getCurrency('USD').then( res => getPaymentCurrency(returnValue,res,q));
+	        	merval.getCurrency('USD').then( res => getPaymentCurrency(returnValue,res,q));
         		break;
 	        case 5: //Badlar
 	          var finalInterest = (financeData.getBadlarAverage(bond.badlarAverage) + bond.interest) / 12 * bond.paymentFrequency;
@@ -83,7 +83,6 @@ function getPayment(title,year,month, amount)
 	          break;
 	      }
 	      returnValue.total = returnValue.interest + returnValue.repayment;
-	    }
   	}else{
 	  	q.resolve(returnValue);
   	}
