@@ -104,16 +104,6 @@ function getCurrency(idOrSymbol) {
 		}
 	});
   	return q.promise;
-  	/*return new promise((resolve,reject) => {
-		request.get(url, (err, res, body) => {
-			if (err == null) {
-				var currency = JSON.parse(body); 
-				return resolve(currency);
-			}else{
-				return reject(err);
-			}
-		});
-  	});*/
 }
 
 function updateCurrency(currency){
