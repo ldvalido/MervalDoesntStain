@@ -60,8 +60,10 @@ app.get('/bond/:symbol/flow/:year/:month/:amount',function (req,res) {
   var amount = parseFloat(req.params.amount);
   var symbol = req.params.symbol;
   mervalito.getBondByTitle(symbol).then( (title) => {
-    var returnValue = bonds.getPayment(title,year,month,amount);
-    res.send( JSON.stringify(returnValue) );
+    bonds.getPayment(title,year,month,amount).then ( returnValue => 
+      {
+        res.send( JSON.stringify(returnValue) );
+      });
   });
 })
 app.get('/bond/:symbol/tir',function (req,res) {

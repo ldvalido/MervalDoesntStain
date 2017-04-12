@@ -66,16 +66,16 @@ function getPayment(title,year,month, amount)
 	          var dolarRate = financeData.getRate(month,year);
 	          var rentLocalCurrency = rent * parseFloat( dolarRate.value);
 	          returnValue.interest = rentLocalCurrency;
+	          merval.getCurrency('ARS').then(res => {
+	          	getPaymentCurrency(returnValue,res,q)
+	          });
 	          break;
 	        case 4: //Tasa Fija
 	          returnValue.interest = amount * title.RentAmount * title.PaymentPeriod.Days / 360 / 100;
 	          break;
 	        case 6: // Bonos Dolarizados
 	        	returnValue.interest = amount * title.RentAmount * title.PaymentPeriod.Days / 360 / 100;
-	        	var qCurrency = merval.getCurrency('USD').then(
-	        		function (res) {;
-	        			getPaymentCurrency(returnValue,res,q);
-	        		});
+	        	var qCurrency = merval.getCurrency('USD').then( res => getPaymentCurrency(returnValue,res,q));
         		break;
 	        case 5: //Badlar
 	          var finalInterest = (financeData.getBadlarAverage(bond.badlarAverage) + bond.interest) / 12 * bond.paymentFrequency;
