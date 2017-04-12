@@ -8,12 +8,11 @@ var dateformat = require('dateformat');
 var $ = require('cheerio');
 var synchro = require('./synchro.js');
 var config = require('config');
-var promise = require('promise');
 var bondManager = require('./bonds.js');
 var mervalProxy = require('./mervalitoProxy.js');
 var yahooFinance = require('./yahooFinanceManager.js');
 var _ = require('lodash');
-
+var Q = require('q');
 function pad(n, width, z) {
   z = z || '0';
   n = n + '';
@@ -37,19 +36,19 @@ function roundNumber(value,decimalQuantity) {
   return Math.round(value * factor) / factor;
 }
 function getCurrentDollarRate() {
-  return new promise ( (resolve, reject) => {
-    yahooFinance.getRate('USDARS').
-      then( res => { return resolve(res) }, 
-        err => { return reject(err) });  
-  });
+  var q = Q.defer();
+   yahooFinance.getRate('USDARS').
+      then( res => { return q.resolve(res) }, 
+        err => { return q.reject(err) }); 
+  return q.promise;
 }
 
 function getCurrentEuroRate() {
-  return new promise ( (resolve, reject) => {
-    yahooFinance.getRate('EURUSD').
-      then( res => { return resolve(res) }, 
-        err => { return reject(err) });  
-  });
+  var q = Q.defer();
+   yahooFinance.getRate('EURUSD').
+      then( res => { return q.resolve(res) }, 
+        err => { return q.reject(err) }); 
+  return q.promise;
 }
 function getBadlarRate() {
   var returnValue = [];
@@ -188,8 +187,8 @@ function updateBondsRate(res, cb) {
   })
 }
 function updateCurrency() {
-  return new promise( (resolve, reject) => {
-    var returnValue = [];
+  var q = Q.defer();
+  var returnValue = [];
     mervalProxy.getCurrencies().then ( lst => {
       _.forEach (lst, function (currency) {
         if (currency.Id != 1) {
@@ -202,9 +201,9 @@ function updateCurrency() {
           })
         }
       });
-      return resolve(returnValue);
-    })
-  })
+      return q.resolve(returnValue);
+    });
+  return q.promise;
 }
 
 module.exports = {

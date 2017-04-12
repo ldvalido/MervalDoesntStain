@@ -49,8 +49,9 @@ app.get('/bond/:symbol/flow/:amount',function (req,res) {
   var symbol = req.params.symbol;
   var amount = parseFloat(req.params.amount);
   mervalito.getBondByTitle(symbol).then( (title) => {
-      var returnValue = bonds.getCashFlow(title, amount);
-      res.send(JSON.stringify(returnValue));
+      var returnValue = bonds.getCashFlow(title, amount).then( returnValue => {
+        res.send(JSON.stringify(returnValue));  
+      })
     });
 })
 app.get('/bond/:symbol/flow/:year/:month/:amount',function (req,res) {

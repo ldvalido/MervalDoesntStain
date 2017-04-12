@@ -1,24 +1,22 @@
 
-var functions = require('./functions.js');
 var financeData = require('./financeData.js');
-var bondRulesFileName = './bondRules.json';
-var util = require('util');
 var utils = require('./utils.js');
-var request = require('sync-request');
+var merval = require('./mervalitoProxy.js');
+var Q = require('q');
 
 function getCashFlow(title, amount) {
-  var returnValue = [];
   var nowDate = new Date();
   var endDate = new Date(title.EndDate);
   var startMonth = nowDate.getFullYear() * 12 + nowDate.getMonth() + 1;
   var endMonth = endDate.getFullYear() * 12 + endDate.getMonth() + 1;
+  var paymentPromises = [];
   for (var i = startMonth; i <= endMonth; i++)
   {
   	var year = Math.trunc(i/12);
-    var el = getPayment(title, year,i - year*12,amount);
-    returnValue.push(el);
+  	paymentPromises.push( getPayment(title, year,i - year*12, amount) );
   }
-  return returnValue;
+  return Q.all(paymentPromises)
+  
 }
 function calculateTIR(title) {
 	var returnValue = {symbol: title.Symbol, plainTIR: 0};
@@ -34,7 +32,8 @@ function calculateTIR(title) {
 }
 function getPayment(title,year,month, amount) 
 {
-	var returnValue = {year:year, month:month, repayment:0,interest:0,total:0};
+	var q = Q.defer();
+	var returnValue = {year:year, month:month, currency:{}, repayment:0,interest:0,total:0};
 	var rentDate = new Date( title.RentDate);
 	var rentMonth = rentDate.getMonth() + 1;
 
@@ -69,17 +68,32 @@ function getPayment(title,year,month, amount)
 	          returnValue.interest = rentLocalCurrency;
 	          break;
 	        case 4: //Tasa Fija
-	          returnValue.interest = amount * title.AmortizationAmount * title.PaymentPeriod.Days / 360 / 100;
+	          returnValue.interest = amount * title.RentAmount * title.PaymentPeriod.Days / 360 / 100;
 	          break;
+	        case 6: // Bonos Dolarizados
+	        	returnValue.interest = amount * title.RentAmount * title.PaymentPeriod.Days / 360 / 100;
+	        	var qCurrency = merval.getCurrency('USD').then(
+	        		function (res) {;
+	        			getPaymentCurrency(returnValue,res,q);
+	        		});
+        		break;
 	        case 5: //Badlar
 	          var finalInterest = (financeData.getBadlarAverage(bond.badlarAverage) + bond.interest) / 12 * bond.paymentFrequency;
 	          returnValue.interest = (amount * finalInterest / 100);
 	          break;
 	      }
-	      returnValue.total = returnValue.interest + returnValue.repayment;
+	      //returnValue.total = returnValue.interest + returnValue.repayment;
 	    }
-	  }
-	return returnValue;
+  	}else{
+	  	return q.resolve(returnValue);
+  	}
+	return q.promise;
+}
+
+function getPaymentCurrency(returnValue, currency, q) {
+	returnValue.currency = currency;
+	returnValue.total = returnValue.interest + returnValue.repayment;
+	q.resolve(returnValue);
 }
 module.exports = {
 	getPayment, getCashFlow, calculateTIR

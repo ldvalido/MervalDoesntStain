@@ -1,6 +1,7 @@
 var config = require('config');
 var request = require('request');
 var promise = require('promise');
+var Q = require('q');
 
 function getBondByTitle(symbol) {
   var apiUrl = config.get('apiUrl');
@@ -89,6 +90,32 @@ function getCurrencies() {
 	});
   });
 }
+
+function getCurrency(idOrSymbol) {
+	var q = Q.defer();
+	var apiUrl = config.get('apiUrl');
+  	var url = apiUrl + 'currency/' + idOrSymbol;
+  	request.get(url, (err, res, body) => {
+		if (err == null) {
+			var currency = JSON.parse(body); 
+			q.resolve(currency);
+		}else{
+			q.reject(err);
+		}
+	});
+  	return q.promise;
+  	/*return new promise((resolve,reject) => {
+		request.get(url, (err, res, body) => {
+			if (err == null) {
+				var currency = JSON.parse(body); 
+				return resolve(currency);
+			}else{
+				return reject(err);
+			}
+		});
+  	});*/
+}
+
 function updateCurrency(currency){
 	var apiUrl = config.get('apiUrl');
   	var urlCurrency = apiUrl + 'currency/';
@@ -109,5 +136,5 @@ function updateCurrency(currency){
 }
 
 module.exports = {
-	getBondByTitle, getBonds, updateTitle, updateCompanyManager, getCompanyManagers, getCurrencies, updateCurrency
+	getBondByTitle, getBonds, updateTitle, updateCompanyManager, getCompanyManagers, getCurrencies, getCurrency, updateCurrency
 }
