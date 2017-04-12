@@ -95,6 +95,7 @@ function getCurrency(idOrSymbol) {
 	var q = Q.defer();
 	var apiUrl = config.get('apiUrl');
   	var url = apiUrl + 'currency/' + idOrSymbol;
+  	console.log(url);
   	request.get(url, (err, res, body) => {
 		if (err == null) {
 			var currency = JSON.parse(body); 

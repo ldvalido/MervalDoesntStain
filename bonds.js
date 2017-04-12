@@ -82,17 +82,16 @@ function getPayment(title,year,month, amount)
 	          returnValue.interest = (amount * finalInterest / 100);
 	          break;
 	      }
-	      //returnValue.total = returnValue.interest + returnValue.repayment;
+	      returnValue.total = returnValue.interest + returnValue.repayment;
 	    }
   	}else{
-	  	return q.resolve(returnValue);
+	  	q.resolve(returnValue);
   	}
 	return q.promise;
 }
 
 function getPaymentCurrency(returnValue, currency, q) {
 	returnValue.currency = currency;
-	returnValue.total = returnValue.interest + returnValue.repayment;
 	q.resolve(returnValue);
 }
 module.exports = {
