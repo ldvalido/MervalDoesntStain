@@ -88,7 +88,6 @@ app.get('/updatemutualfund', function(req,res) {
 
 app.get('/updatebond', function (req,res) {
   var result = functions.updateBondsRate().then ( result => {
-    res.header("Content-Type", "application/json");
     res.send(JSON.stringify(result))
   }, err => {
     res.send (err);
@@ -102,14 +101,6 @@ app.get('/updatecurrency', function (req,res) {
     res.send(JSON.stringify(lst));
   })
 });
-
-app.all("/*", function(req, res, next) {
-  res.header("Access-Control-Allow-Origin", "*");
-  res.header("Access-Control-Allow-Headers", "Cache-Control, Pragma, Origin, Authorization, Content-Type, X-Requested-With");
-  res.header("Access-Control-Allow-Methods", "GET, PUT, POST");
-  return next();
-});
-
 app.listen(process.env.PORT || 3000, function () {
   console.log('Merval does not stain app listening on port 3000!');
   var rule = new schedule.RecurrenceRule();
