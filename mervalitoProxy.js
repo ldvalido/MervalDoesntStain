@@ -33,23 +33,23 @@ function getBonds() {
   });
 }
 
-function updateTitle(title) {	
+function updateTitle(title) {
+	var q = Q.defer();
   	var apiUrl = config.get('apiUrl');
   	var urlBond = apiUrl + 'titles/';
-	return new promise((resolve,reject) => {
-		request({
-		    method:'PUT',
-	      	headers: { 'Content-Type': 'application/json' },
-	      	url: urlBond,
-	      	body: JSON.stringify( title) 
-	    }, (err,res,body) => {
-	    	if (err == null){
-	    		return resolve(JSON.parse(res.body));
-	    	}else{
-	    		return reject(err);
-	    	}
-	    })	
-	});
+	request({
+	    method:'PUT',
+      	headers: { 'Content-Type': 'application/json' },
+      	url: urlBond,
+      	body: JSON.stringify( title) 
+    }, (err,res,body) => {
+    	if (err == null){
+    		return q.resolve(JSON.parse(res.body));
+    	}else{
+    		return q.reject(err);
+    	}
+    })
+	return q.promise;
 	
 }
 function getCompanyManagers() {
@@ -77,25 +77,25 @@ function updateCompanyManager(companymanager) {
     });
 }
 function getCurrencies() {
-	 var apiUrl = config.get('apiUrl');
+  var apiUrl = config.get('apiUrl');
   var urlBond = apiUrl + 'currency/';
-  return new promise((resolve,reject) => {
-	request.get(urlBond, (err, res, body) => {
-		if (err == null) {
-			var title = JSON.parse(res.body); 
-			return resolve(title);
-		}else{
-			return reject(err);
-		}
+  var q = Q.defer();
+
+  request.get(urlBond, (err, res, body) => {
+	if (err == null) {
+		var title = JSON.parse(res.body); 
+		return q.resolve(title);
+	}else{
+		return q.reject(err);
+	}
 	});
-  });
+  return q.promise;
 }
 
 function getCurrency(idOrSymbol) {
 	var q = Q.defer();
 	var apiUrl = config.get('apiUrl');
   	var url = apiUrl + 'currency/' + idOrSymbol;
-  	console.log(url);
   	request.get(url, (err, res, body) => {
 		if (err == null) {
 			var currency = JSON.parse(body); 
@@ -110,20 +110,20 @@ function getCurrency(idOrSymbol) {
 function updateCurrency(currency){
 	var apiUrl = config.get('apiUrl');
   	var urlCurrency = apiUrl + 'currency/';
-	return new promise((resolve,reject) => {
-		request({
-		    method:'PUT',
-	      	headers: { 'Content-Type': 'application/json' },
-	      	url: urlCurrency,
-	      	body: JSON.stringify( currency) 
-	    }, (err,res,body) => {
-	    	if (err == null){
-	    		return resolve(JSON.parse(body));
-	    	}else{
-	    		return reject(err);
-	    	}
-	    })	
-	});	
+  	var q = Q.defer();
+	request({
+	    method:'PUT',
+      	headers: { 'Content-Type': 'application/json' },
+      	url: urlCurrency,
+      	body: JSON.stringify( currency) 
+    }, (err,res,body) => {
+    	if (err == null){
+    		return q.resolve(JSON.parse(body));
+    	}else{
+    		return q.reject(err);
+    	}
+    });
+	return q.promise;
 }
 
 module.exports = {

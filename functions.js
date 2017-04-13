@@ -165,44 +165,57 @@ function processRates() {
   return rawOutput;
 }
 
-function updateBondsRate(res, cb) {
+function updateBondsRate() {
+  var q = Q.defer();
+  
   var returnValue = 
   {
     ok: [],
     err: []
   };
   mervalProxy.getBonds().then ( lst => {
+    var chain = Q.when();
     _.forEach (lst, function(title) {
-      yahooFinance.getBondValue(title.Symbol).then( value => {
-          if (value) {
-            title.Price = value;  
-          }
-          title.TIR = bondManager.calculateTIR(title).plainTIR;
-          mervalProxy.updateTitle(title)
-            .then( el => {returnValue.ok.push(title);},
-                   el => {returnValue.err.push(title)});
-      })
+      chain = chain.then (function() {
+        return yahooFinance.getBondValue(title.Symbol)
+      }).then ( bondValue => {
+        if (bondValue) {
+          title.Price = bondValue;
+        }
+        //title.TIR = bondManager.calculateTIR(title).plainTIR;
+        return mervalProxy.updateTitle(title);
+      }).then(el => {
+        returnValue.ok.push(el);
+        q.notify(el);
+      });
     });
-    cb(res,returnValue);
+    chain.then (function() {
+      q.resolve(returnValue);
+    });
   })
+  return q.promise;
 }
 function updateCurrency() {
   var q = Q.defer();
   var returnValue = [];
-    mervalProxy.getCurrencies().then ( lst => {
-      _.forEach (lst, function (currency) {
-        if (currency.Id != 1) {
-          yahooFinance.getRate('USD' + currency.Symbol).then(res => {
-            currency.Rate = res;
-            mervalProxy.updateCurrency(currency).then(
-              el => {
-                returnValue.push(el); 
-              });
-          })
-        }
+  mervalProxy.getCurrencies().then ( lst => {
+    return _.filter(lst,  c => c.Id != 1);
+  }).then( lst => {
+    var chain = Q.when();
+    _.forEach(lst, currency => {
+       chain = chain.then( function() {
+          return yahooFinance.getRate('USD' + currency.Symbol)
+       }).then( rate => {
+          currency.Rate = rate;
+          return mervalProxy.updateCurrency(currency);
+      }).then(currency => {
+          returnValue.push(currency);
       });
-      return q.resolve(returnValue);
-    });
+    })
+    chain.then (function () {
+      q.resolve(returnValue);
+    })
+  });
   return q.promise;
 }
 

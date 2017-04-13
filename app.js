@@ -87,9 +87,13 @@ app.get('/updatemutualfund', function(req,res) {
 })
 
 app.get('/updatebond', function (req,res) {
-  var result = functions.updateBondsRate(res, function(res, result) {
+  var result = functions.updateBondsRate().then ( result => {
     res.send(JSON.stringify(result))
-  })
+  }, err => {
+    res.send (err);
+  }, progress => {
+    console.log(progress);
+  });
 });
 
 app.get('/updatecurrency', function (req,res) {
