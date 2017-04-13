@@ -88,6 +88,7 @@ app.get('/updatemutualfund', function(req,res) {
 
 app.get('/updatebond', function (req,res) {
   var result = functions.updateBondsRate().then ( result => {
+    res.header("Content-Type", "application/json");
     res.send(JSON.stringify(result))
   }, err => {
     res.send (err);
