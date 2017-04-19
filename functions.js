@@ -1,6 +1,6 @@
-var request = require('sync-request');
-var requestAsync = require('request');
+var request = require('request');
 var util = require('util');
+var utils = require('./utils.js')
 var fs = require('fs');
 var fileName = './dolar.json';
 var xml = require('xml2js');
@@ -13,28 +13,7 @@ var mervalProxy = require('./mervalitoProxy.js');
 var yahooFinance = require('./yahooFinanceManager.js');
 var _ = require('lodash');
 var Q = require('q');
-function pad(n, width, z) {
-  z = z || '0';
-  n = n + '';
-  return n.length >= width ? n : new Array(width - n.length + 1).join(z) + n;
-}
-function normalizeValue(value) {
-  if (typeof value === 'string') {
-    return value.replace(',','.'); 
-  }
-  return value;
-}
-function parseEuropeanDate(value) {
-  var sections = value.split('/');
-  return new Date(sections[2],sections[1],sections[0],0,0,0,0);
-}
-function roundNumber(value,decimalQuantity) {
-  var factor = 1;
-  for (var i = 1; i<= decimalQuantity; i++){
-    factor = factor * 10;
-  }
-  return Math.round(value * factor) / factor;
-}
+
 function getCurrentDollarRate() {
   var q = Q.defer();
    yahooFinance.getRate('USDARS').
@@ -51,35 +30,39 @@ function getCurrentEuroRate() {
   return q.promise;
 }
 function getBadlarRate() {
+  var q = Q.defer();
   var returnValue = [];
   var url = 'http://www.ambito.com/economia/mercados/tasas/info/?ric=ARSBADPR1MD=RR';
-  var response = request('GET',url);
-  var rawHtml = response.getBody('utf8');
-  var node = $.load(rawHtml);
-  var selectorTableForQty = ".tablaMercados>tr";
-  var cells = node(selectorTableForQty).find('td');
-  var tableQuantity = cells.length / 3;
-  for (var i = 1; i < tableQuantity; i++) {
-    var rateRaw = cells[i*3+2].children[0].next.children[0].data;
-    var dateRaw = cells[i*3].children[0].children[0].data;
-    var rate = parseFloat(rateRaw.replace(',','.'));
-    var date = parseEuropeanDate(dateRaw);
-    returnValue.push ({date:date,rate:rate});
-  }
-  
-  return returnValue;
+  request({
+      method:'GET',
+      url:url
+    }, (err,res,rawHtml) => {
+      var node = $.load(rawHtml);
+      var selectorTableForQty = ".tablaMercados>tr";
+      var cells = node(selectorTableForQty).find('td');
+      var tableQuantity = cells.length / 3;
+      for (var i = 1; i < tableQuantity; i++) {
+        var rateRaw = cells[i*3+2].children[0].next.children[0].data;
+        var dateRaw = cells[i*3].children[0].children[0].data;
+        var rate = parseFloat(rateRaw.replace(',','.'));
+        var date = utils.parseEuropeanDate(dateRaw);
+        returnValue.push ({date:date,rate:rate});
+      }
+      q.resolve(returnValue);
+    });
+  return q.promise;
 }
 
 function getRateByYear(node, fee, year){
   var key='DLR%s' + year;
    for (var i = 1; i <= 12; i++) {
 
-    var selector = util.format(".table-rofex > tbody > tr:contains('%s') td", util.format(key, pad(i,2)  ) );
+    var selector = util.format(".table-rofex > tbody > tr:contains('%s') td", util.format(key, utils.pad(i,2)  ) );
 
     var value = node(selector).first().next().text();
     if (value != '') {
       var el = fee.dollarValues.find ( o => o.month == i && o.year == year);
-      var normalizedValue =  parseFloat(normalizeValue(value));
+      var normalizedValue =  parseFloat(utils.normalizeValue(value));
       if (el){
         el.value = normalizedValue;
       }else{
@@ -89,7 +72,8 @@ function getRateByYear(node, fee, year){
   }
   return fee;
 }
-function processFundMutual(res,cb){
+function processFundMutual(){
+  var q = Q.defer();
   var returnValue = {
     companyManager:[]
   };
@@ -100,7 +84,7 @@ function processFundMutual(res,cb){
   var apiUrl = config.get('apiUrl');
   
   var urlListCompanyManager = apiUrl + 'companymanager';
-  requestAsync.get(urlCompanyManager, function(err, response, body) {
+  request.get(urlCompanyManager, function(err, response, body) {
     //var rawCookies = response.headers['set-cookie'];
     //var urlSheet = 'http://www.cafci.org.ar/Scripts/cfn_PlanillaDiariaXMLList.asp';
     xml.parseString(response.body, function (err, result) {
@@ -125,15 +109,17 @@ function processFundMutual(res,cb){
               function (syncEl) {
                 mervalProxy.updateCompanyManager(syncEl);
               });
-              cb(res,returnValue);
+              q.resolve(returnValue);
         } );
       } else {
-        cb(res,returnValue);
+        q.resolve(returnValue);
       }
     });
   });
+  return q.promise;
 }
 function processRates() {
+  var q = Q.defer();
   var currentDate = new Date();
   var fee = {
     processDate: currentDate,
@@ -146,23 +132,42 @@ function processRates() {
   var url = config.get('rofexUrl');
   var rawData = fs.readFileSync(fileName, 'utf8');
   var fee = JSON.parse(rawData);
-
-  var html = request('GET',url);
-  var rawHtml = html.getBody('utf8');
-  var node = $.load(rawHtml);
-  var nowDate = new Date();
-  getRateByYear(node, fee,nowDate.getFullYear());
-  getRateByYear(node, fee,nowDate.getFullYear() + 1);
-  fee.dollarRate = getCurrentDollarRate();
-  fee.euroRate = getCurrentEuroRate();
-  fee.processDate = currentDate;
-  fee.badlarValues = getBadlarRate();
-  fee.badlarRate = fee.badlarValues[0].rate;
-  var rawOutput = JSON.stringify( fee , null , '  ');
-  fs.writeFile(fileName, rawOutput);
-  fs.writeFile('./history/' + dateformat(currentDate,'yyyymmdd') + '.json', rawOutput);
-
-  return rawOutput;
+  var chain = Q.when();
+  chain.then(function(){
+    return request({
+      method:'GET',
+      url:url
+    }, (err,res,body) => {
+      return body;
+    })
+  }).then(function(rawHtml) {
+    var node = $.load(rawHtml);
+    var nowDate = new Date();
+    getRateByYear(node, fee,nowDate.getFullYear());
+    getRateByYear(node, fee,nowDate.getFullYear() + 1);
+    return fee;
+  }).then(function(fee) {
+    return getCurrentDollarRate();
+  }).then(function (dollarRate) {
+    fee.dollarRate = dollarRate;
+    return fee;
+  }).then(function (fee){
+    return getCurrentEuroRate();
+  }).then(function(euroRate){
+    fee.euroRate = euroRate;
+    return fee;
+  }).then(function(fee) {
+    return getBadlarRate();
+  }).then(function(badlarValues){
+    fee.badlarValues = badlarValues;
+    fee.badlarRate = badlarValues[0].rate;
+    fee.processDate = currentDate;
+    var rawOutput = JSON.stringify( fee , null , '  ');
+    fs.writeFile(fileName, rawOutput);
+    fs.writeFile('./history/' + dateformat(currentDate,'yyyymmdd') + '.json', rawOutput);
+    return q.resolve(rawOutput);
+  });
+  return q.promise;
 }
 
 function updateBondsRate() {
@@ -220,5 +225,5 @@ function updateCurrency() {
 }
 
 module.exports = {
-    pad,  getCurrentDollarRate, getCurrentEuroRate, processRates, parseEuropeanDate, roundNumber, processFundMutual, updateBondsRate, updateCurrency
+    getCurrentDollarRate, getCurrentEuroRate, processRates, processFundMutual, updateBondsRate, updateCurrency
 };

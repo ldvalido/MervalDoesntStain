@@ -1,36 +1,35 @@
 var config = require('config');
 var request = require('request');
-var promise = require('promise');
 var Q = require('q');
 
 function getBondByTitle(symbol) {
+  var q = Q.defer();
   var apiUrl = config.get('apiUrl');
   var urlBond = apiUrl + 'titles/' + symbol;
-  return new promise((resolve,reject) => {
-	request.get(urlBond, (err, res, body) => {
+  request.get(urlBond, (err, res, body) => {
 		if (err == null) {
 			var title = JSON.parse(res.body); 
-			return resolve(title);
+			q.resolve(title);
 		}else{
-			return reject(err);
+      q.reject(err);
 		}
 	});
-  });
+  return q.promise;
 }
 
 function getBonds() {
   var apiUrl = config.get('apiUrl');
   var urlBond = apiUrl + 'titles/';
-  return new promise((resolve,reject) => {
-	request.get(urlBond, (err, res, body) => {
+  var q = Q.defer();
+  request.get(urlBond, (err, res, body) => {
 		if (err == null) {
 			var title = JSON.parse(res.body); 
-			return resolve(title);
+			q.resolve(title);
 		}else{
-			return reject(err);
+			q.reject(err);
 		}
 	});
-  });
+  return q.promise;
 }
 
 function updateTitle(title) {
@@ -53,22 +52,22 @@ function updateTitle(title) {
 	
 }
 function getCompanyManagers() {
-	var apiUrl = config.get('apiUrl');  
-  	var urlListCompanyManager = apiUrl + 'companymanager';
-  	return new promise((resolve,reject) => {
-  		request.get(urlListCompanyManager, (err,res,body) => {
-  			if (err == null){
-  				var list = JSON.parse(res.body); 
-				return resolve(list);
-  			}else{
-  				return reject(err);
-  			}
-  		})
-  	})
+	var q = Q.defer();
+  var apiUrl = config.get('apiUrl');  
+  var urlListCompanyManager = apiUrl + 'companymanager';
+  request.get(urlListCompanyManager, (err,res,body) => {
+  	if (err == null){
+  		var list = JSON.parse(res.body); 
+			q.resolve(list);
+  	}else{
+  		q.reject(err);
+  	}
+  });
+  return q.promise;
 }
 function updateCompanyManager(companymanager) {
 	var apiUrl = config.get('apiUrl');  
-  	var urlListCompanyManager = apiUrl + 'companymanager';
+  var urlListCompanyManager = apiUrl + 'companymanager';
 	request({
       method:'POST',
       headers: { 'Content-Type': 'application/json' },

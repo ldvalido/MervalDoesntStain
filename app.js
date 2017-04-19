@@ -12,8 +12,9 @@ app.use(statusMonitor);
 app.get('/getrate/:year/:month', function (req, res) {
   var month =  parseInt(req.params.month);
   var year = parseInt(req.params.year);
-  var returnValue = finance.getRate(month,year);
-  res.send(JSON.stringify(returnValue));
+  finance.getRate(month,year).then (returnValue => {
+    res.send(JSON.stringify(returnValue));
+  });
 })
 
 app.get('/price/:symbol', function(req,res){
@@ -35,13 +36,15 @@ app.get('/getCurrentEuroRate', function(req,res) {
   });
 })
 app.get('/getBadlarRate', function(req,res) {
-  var returnValue = finance.getBadlarRate();
-  res.send( JSON.stringify (returnValue))
+  finance.getBadlarRate().then(rate => {
+    res.send( JSON.stringify (rate))
+  })
 })
 app.get('/getAverageBadlarRate/:days', function(req,res) {
  var days = parseInt(req.params.days);
- var returnValue = finance.getBadlarAverage(days);
- res.send(JSON.stringify(returnValue) );
+ var returnValue = finance.getBadlarAverage(days).then(returnValue => {
+    res.send(JSON.stringify(returnValue) );
+ })
 })
 
 app.get('/bond/:symbol/flow/:amount',function (req,res) {
@@ -49,10 +52,10 @@ app.get('/bond/:symbol/flow/:amount',function (req,res) {
   var symbol = req.params.symbol;
   var amount = parseFloat(req.params.amount);
   mervalito.getBondByTitle(symbol).then( (title) => {
-      var returnValue = bonds.getCashFlow(title, amount).then( returnValue => {
-        res.send(JSON.stringify(returnValue));  
-      })
-    });
+    var returnValue = bonds.getCashFlow(title, amount).then( returnValue => {
+      res.send(JSON.stringify(returnValue));  
+    })
+  });
 })
 app.get('/bond/:symbol/flow/:year/:month/:amount',function (req,res) {
   var month = parseInt(req.params.month);
@@ -75,12 +78,13 @@ app.get('/bond/:symbol/tir',function (req,res) {
     });
 })
 app.get('/process', function (req, res) {
-    var result = functions.processRates();
-    res.send(result);
+    functions.processRates().then(returnValue => {
+      res.send(returnValue);
+    });
 })
 
 app.get('/updatemutualfund', function(req,res) {
-  var result = functions.processFundMutual( res, function(res, result) {
+  functions.processFundMutual().then( result => {
       res.send(JSON.stringify( result));
     }
   );
