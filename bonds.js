@@ -40,48 +40,39 @@ function getPayment(title,year,month, amount)
 	var hasPayment = (month - rentMonth) % (title.PaymentPeriod.Days / 30) == 0;
 	var expireDate = new Date(title.EndDate);
 	var isExpired = (year > expireDate.getFullYear()) || (year == expireDate.getFullYear() && month > expireDate.getMonth() + 1);
-  	
   	if (hasPayment && !isExpired) {
-	      //Calculate Repayment
-	      switch(title.PaymentPeriod.Id) {
-	        case 1:
-	          var dolarRate = financeData.getRate(month,year);
-	          returnValue.repayment = (title.AmortizationAmount * amount * parseFloat(dolarRate.value) / 100);
-	          break;
-	        case 2:
-	          if ( (month == expireDate.getMonth() + 1) && (year == expireDate.getFullYear() ) ) {
-	            returnValue.repayment = amount;
-	          }
-	          break;
-	      }
-	      //Calculate Rent
-	      switch (title.BondType.Id) {
-	        case 2: //Dolar Linked
-	          var dateFirstRepayment = new Date(title.RentDate);
-	          var qtyMonth = utils.noOfmonths(dateFirstRepayment, new Date(year,month-1,dateFirstRepayment.getDate()+1,0,0,0,0))
-	          var payments = qtyMonth / (title.PaymentPeriod.Days / 30);
-	          var pendingPayment = 100 - payments *  title.AmortizationAmount;
-	          var rentPercentage = pendingPayment * title.RentAmount / 12 * (title.PaymentPeriod.Days / 30 )/ 100;
-	          var rent = amount * rentPercentage / 100;
-	          var dolarRate = financeData.getRate(month,year);
-	          var rentLocalCurrency = rent * parseFloat( dolarRate.value);
-	          returnValue.interest = rentLocalCurrency;
-	          merval.getCurrency('ARS').then(res => {
-	          	getPaymentCurrency(returnValue,res,q)
-	          });
-	          break;
-	        case 4: //Tasa Fija
-	          returnValue.interest = amount * title.RentAmount * title.PaymentPeriod.Days / 360 / 100;
-	          break;
-	        case 6: // Bonos Dolarizados
-	        	returnValue.interest = amount * title.RentAmount * title.PaymentPeriod.Days / 360 / 100;
-	        	merval.getCurrency('USD').then( res => getPaymentCurrency(returnValue,res,q));
-        		break;
-	        case 5: //Badlar
-	          var finalInterest = (financeData.getBadlarAverage(bond.badlarAverage) + bond.interest) / 12 * bond.paymentFrequency;
-	          returnValue.interest = (amount * finalInterest / 100);
-	          break;
-	      }
+  		  calculateRepayment(title, returnValue, year, month, amount).then(returnValue => {
+		      //Calculate Repayment
+		      switch (title.BondType.Id) {
+		        case 2: //Dolar Linked
+		          var dateFirstRepayment = new Date(title.RentDate);
+		          var qtyMonth = utils.noOfmonths(dateFirstRepayment, new Date(year,month-1,dateFirstRepayment.getDate()+1,0,0,0,0))
+		          var payments = qtyMonth / (title.PaymentPeriod.Days / 30);
+		          var pendingPayment = 100 - payments *  title.AmortizationAmount;
+		          var rentPercentage = pendingPayment * title.RentAmount / 12 * (title.PaymentPeriod.Days / 30 )/ 100;
+		          var rent = amount * rentPercentage / 100;
+		          var dolarRate = financeData.getRate(month,year).then(dolarRate => {
+		          var rentLocalCurrency = rent * parseFloat( dolarRate.value);
+		          	returnValue.interest = rentLocalCurrency;
+		          	returnValue.total = returnValue.interest + returnValue.repayment;
+		          	merval.getCurrency('ARS').then(res => {
+		          		getPaymentCurrency(returnValue,res,q)
+		          	});
+		          });
+		          break;
+		        case 4: //Tasa Fija
+		          returnValue.interest = amount * title.RentAmount * title.PaymentPeriod.Days / 360 / 100;
+		          break;
+		        case 6: // Bonos Dolarizados
+		        	returnValue.interest = amount * title.RentAmount * title.PaymentPeriod.Days / 360 / 100;
+		        	merval.getCurrency('USD').then( res => getPaymentCurrency(returnValue,res,q));
+	        		break;
+		        case 5: //Badlar
+		          var finalInterest = (financeData.getBadlarAverage(bond.badlarAverage) + bond.interest) / 12 * bond.paymentFrequency;
+		          returnValue.interest = (amount * finalInterest / 100);
+		          break;
+		      }
+		  });
 	      returnValue.total = returnValue.interest + returnValue.repayment;
   	}else{
 	  	q.resolve(returnValue);
@@ -89,6 +80,26 @@ function getPayment(title,year,month, amount)
 	return q.promise;
 }
 
+function calculateRepayment(title, returnValue, year, month, amount) {
+	var q = Q.defer();
+	var expireDate = new Date(title.EndDate);
+	switch(title.PaymentPeriod.Id) {
+        case 1:
+          financeData.getRate(month,year).then(dolarRate => {
+          	returnValue.repayment = (title.AmortizationAmount * amount * parseFloat(dolarRate.value) / 100);
+          	console.log(returnValue);
+          	q.resolve(returnValue);
+          });
+          break;
+        case 2:
+          if ( (month == expireDate.getMonth() + 1) && (year == expireDate.getFullYear() ) ) {
+            returnValue.repayment = amount;
+          }
+          q.resolve(returnValue);
+          break;
+      }
+	return q.promise;
+}
 function getPaymentCurrency(returnValue, currency, q) {
 	returnValue.currency = currency;
 	q.resolve(returnValue);
