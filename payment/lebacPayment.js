@@ -1,4 +1,4 @@
-function calculatePayment(title,year,month, amount) {
+function calculatePayment(returnValue, title,year,month, amount) {
 
 }
 
