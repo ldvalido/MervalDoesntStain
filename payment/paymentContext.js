@@ -5,11 +5,12 @@ var dollar = require('./dollarPayment.js');
 var fixFee = require('./fixFeePayment.js');
 function calculatePayment(returnValue, title,year,month, amount) {
  	var q = Q.defer();
+
  	var operations = {
  		2: linked,
  		4: fixFee,
  		5: badlar,
- 		5: dollar
+ 		6: dollar
  	}
  	operations[title.BondType.Id].calculatePayment(returnValue, title,year,month, amount).then(returnValue => {
 		q.resolve(returnValue);

@@ -1,6 +1,7 @@
 var financeData = require('./financeData.js');
 var utils = require('./utils.js');
 var paymentCtx = require('./payment/paymentContext.js');
+var rePaymentCtx = require('./repayment/repaymentContext.js');
 var Q = require('q');
 
 function getCashFlow(title, amount) {
@@ -40,36 +41,15 @@ function getPayment(title,year,month, amount)
 	var expireDate = new Date(title.EndDate);
 	var isExpired = (year > expireDate.getFullYear()) || (year == expireDate.getFullYear() && month > expireDate.getMonth() + 1);
   	if (hasPayment && !isExpired) {
-  		  calculateRepayment(title, returnValue, year, month, amount)
-  		  	.then(returnValue => {return returnValue;})
+  		  rePaymentCtx.calculateRepayment(returnValue, title, year, month, amount)
   		  	.then(returnValue => {
-  		  		paymentCtx.calculatePayment(returnValue, title,year, month, amount).then(returnValue => {
-		      		q.resolve(returnValue);
+  		  		paymentCtx.calculatePayment(returnValue, title,year, month, amount).then(paymentValue => {
+              q.resolve(paymentValue);
 	      		});
   		  	});
   	}else{
 	  	q.resolve(returnValue);
   	}
-	return q.promise;
-}
-
-function calculateRepayment(title, returnValue, year, month, amount) {
-	var q = Q.defer();
-	var expireDate = new Date(title.EndDate);
-	switch(title.PaymentPeriod.Id) {
-        case 1:
-          financeData.getRate(month,year).then(dolarRate => {
-          	returnValue.repayment = (title.AmortizationAmount * amount * parseFloat(dolarRate.value) / 100);
-          	q.resolve(returnValue);
-          });
-          break;
-        case 2:
-          if ( (month == expireDate.getMonth() + 1) && (year == expireDate.getFullYear() ) ) {
-            returnValue.repayment = amount;
-          }
-          q.resolve(returnValue);
-          break;
-      }
 	return q.promise;
 }
 module.exports = {
