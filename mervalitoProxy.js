@@ -106,6 +106,39 @@ function getCurrency(idOrSymbol) {
   	return q.promise;
 }
 
+function getStockExchangeBond() {
+  var q = Q.defer();
+  var apiUrl = config.get('apiUrl');
+  var url = apiUrl + 'caution';
+  request.get(url, (err,res,body) => {
+    var lstStockExchangeBond = JSON.parse(body);
+    q.resolve(lstStockExchangeBond);
+  });
+  return q.promise;
+}
+
+function createStockExchangeBond(item) {
+  var q = Q.defer();
+  var apiUrl = config.get('apiUrl');
+  var url = apiUrl + 'caution';
+  request.post(url, (err,res,body) => {
+    var el = JSON.parse(body);
+    q.resolve(el);
+  });
+  return q.promise;
+}
+
+function updateStockExchangeBond(item) {
+  var q = Q.defer();
+  var apiUrl = config.get('apiUrl');
+  var url = apiUrl + 'caution';
+  request.put(url, (err,res,body) => {
+    var el = JSON.parse(body);
+    q.resolve(el);
+  });
+  return q.promise;
+}
+
 function updateCurrency(currency){
 	var apiUrl = config.get('apiUrl');
   	var urlCurrency = apiUrl + 'currency/';
@@ -126,5 +159,6 @@ function updateCurrency(currency){
 }
 
 module.exports = {
-	getBondByTitle, getBonds, updateTitle, updateCompanyManager, getCompanyManagers, getCurrencies, getCurrency, updateCurrency
+	getBondByTitle, getBonds, updateTitle, updateCompanyManager, getCompanyManagers, getCurrencies, getCurrency, updateCurrency,
+  getStockExchangeBond, createStockExchangeBond, updateStockExchangeBond
 }

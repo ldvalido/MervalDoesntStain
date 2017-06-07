@@ -13,6 +13,7 @@ var mervalProxy = require('./mervalitoProxy.js');
 var yahooFinance = require('./yahooFinanceManager.js');
 var _ = require('lodash');
 var Q = require('q');
+var bcbaManager = require('./BCBAManager.js');
 
 function getCurrentDollarRate() {
   var q = Q.defer();
@@ -224,6 +225,36 @@ function updateCurrency() {
   return q.promise;
 }
 
+function updateStockExchangeBond() {
+  var q = Q.defer();
+  jobPromise = [];
+  jobPromise.push(bcbaManager.getStockExchangeBond() );
+  jobPromise.push(mervalProxy.getStockExchangeBond() );
+  Q.all(jobPromise).then(job => {
+    var bcbaData = job[0];
+    var mervalData = job[1];
+    console.log(bcbaData);
+    _.forEach(bcbaData, item => {
+      var elem = _.filter(mervalData,function(mervalItem) {
+        return mervalItem.Days == item.Days && mervalItem.Currency.Id == item.Currency.Id;
+      });
+      console.log(elem);
+      if (elem.length > 0) {
+        item.Percentage = mervalItem.Percentage;
+        mervalProxy.updateStockExchangeBond(item);
+      }else{
+        mervalProxy.createStockExchangeBond({
+          Days: mervalItem.Days,
+          Percentage: mervalItem.Percentage,
+          Currency: mervalItem.Currency
+        });
+      }
+    })
+    q.resolve(mervalData);
+  });
+  return q.promise;
+}
+
 module.exports = {
-    getCurrentDollarRate, getCurrentEuroRate, processRates, processFundMutual, updateBondsRate, updateCurrency
+    getCurrentDollarRate, getCurrentEuroRate, processRates, processFundMutual, updateBondsRate, updateCurrency, updateStockExchangeBond
 };

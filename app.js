@@ -4,11 +4,13 @@ var finance = require('./financeData.js');
 var schedule = require('node-schedule');
 var functions = require('./functions.js');
 var bonds = require('./bonds.js');
-var mervalito = require('./mervalitoProxy.js')
-var yahooFinance = require('./yahooFinanceManager.js')
+var mervalito = require('./mervalitoProxy.js');
+var yahooFinance = require('./yahooFinanceManager.js');
+
 const statusMonitor = require('express-status-monitor')();
 
 app.use(statusMonitor);
+
 app.get('/getrate/:year/:month', function (req, res) {
   var month =  parseInt(req.params.month);
   var year = parseInt(req.params.year);
@@ -83,6 +85,11 @@ app.get('/process', function (req, res) {
     });
 })
 
+app.get('/updatestockexchangebond',function(req,res) {
+  functions.updateStockExchangeBond().then (result => {
+    res.send(JSON.stringify(result));
+  })
+})
 app.get('/updatemutualfund', function(req,res) {
   functions.processFundMutual().then( result => {
       res.send(JSON.stringify( result));

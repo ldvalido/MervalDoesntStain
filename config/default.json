@@ -3,5 +3,6 @@
 	"rofexUrl": "https://www.rofex.com.ar",
 	"mutualFund": {
 		"companyManager":"http://cafci.org.ar/Scripts/cfn_SGerentesXMLList.asp"
-	}
+	},
+	"StockExchangeBond": "https://www.bolsar.com/VistasDL/PaginaCauciones.aspx/GetDataPack"
 }

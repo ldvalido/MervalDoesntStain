@@ -28,6 +28,10 @@ function pad(n, width, z) {
   return n.length >= width ? n : new Array(width - n.length + 1).join(z) + n;
 }
 
+function roundUp(num, precision) {
+  return Math.ceil(num * precision) / precision
+}
+
 module.exports={
-	dayDiff, noOfmonths, normalizeValue, parseEuropeanDate, pad
+	dayDiff, noOfmonths, normalizeValue, parseEuropeanDate, pad, roundUp
 }
