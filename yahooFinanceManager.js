@@ -7,6 +7,7 @@ function getRate(forexKey) {
   var q = Q.defer();
     var returnValue = '';
     var url = 'https://query.yahooapis.com/v1/public/yql?q=select%20*%20from%20yahoo.finance.xchange%20where%20pair%20in%20(%22'+forexKey+'%22)&env=store://datatables.org/alltableswithkeys';
+    console.log(url);
     request({
         method:'GET',
         url: url
@@ -29,6 +30,7 @@ function getBondValue(symbol) {
   var query = util.format('select * from yahoo.finance.quotes where symbol in ("%s")',symbol + '.BA');
   var store = 'store://datatables.org/alltableswithkeys';
   var url = util.format('%s?q=%s&format=json&env=%s&callback=',rawUrl,encodeURIComponent(query),encodeURIComponent(store));
+  console.log(url);
   var q = Q.defer();
     var rawJson = request({
       method:'GET',
