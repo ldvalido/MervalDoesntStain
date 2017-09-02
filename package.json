@@ -22,6 +22,9 @@
   "bugs": {
     "url": "https://github.com/ldvalido/MervalDoesntStain/issues"
   },
+  "engines": {
+    "node": "6.11.1"
+  },
   "homepage": "https://github.com/ldvalido/MervalDoesntStain#readme",
   "dependencies": {
     "cheerio": "^0.22.0",
