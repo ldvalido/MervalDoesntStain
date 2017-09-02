@@ -12,7 +12,7 @@ function getRate(forexKey) {
         url: url
         }, (err,res,body) => {
           if (err == null) {
-            
+            console.log(body);
             xml.parseString(body, function (err, result) {
                 var returnValue = result.query.results[0].rate[0].Bid[0];
                 return q.resolve(returnValue);
