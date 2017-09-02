@@ -34,6 +34,7 @@ function getBondValue(symbol) {
       method:'GET',
       url:url
     }, (err,res,body) => {
+      console.log(body);
       var jsonResponse = JSON.parse(body);
       var returnValue =  jsonResponse.query.results.quote.Ask || jsonResponse.query.results.quote.LastTradePriceOnly;
       return q.resolve(returnValue);
