@@ -17,7 +17,7 @@ var bcbaManager = require('./BCBAManager.js');
 
 function getCurrentDollarRate() {
   var q = Q.defer();
-   yahooFinance.getRate('USDARS').
+   yahooFinance.getRate('ARS').
       then( res => { return q.resolve(res) }, 
         err => { return q.reject(err) }); 
   return q.promise;
@@ -25,7 +25,7 @@ function getCurrentDollarRate() {
 
 function getCurrentEuroRate() {
   var q = Q.defer();
-   yahooFinance.getRate('EURUSD').
+   yahooFinance.getRate('USD').
       then( res => { return q.resolve(res) }, 
         err => { return q.reject(err) }); 
   return q.promise;
@@ -210,7 +210,7 @@ function updateCurrency() {
     var chain = Q.when();
     _.forEach(lst, currency => {
        chain = chain.then( function() {
-          return yahooFinance.getRate('USD' + currency.Symbol)
+          return yahooFinance.getRate(currency.Symbol)
        }).then( rate => {
           currency.Rate = rate;
           return mervalProxy.updateCurrency(currency);

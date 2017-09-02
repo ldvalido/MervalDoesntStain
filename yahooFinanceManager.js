@@ -5,30 +5,27 @@ var xml = require('xml2js');
 
 function getRate(forexKey) {
   var q = Q.defer();
+    var maxAttempts = 10;
+    var attempts = 0;
     var returnValue = '';
-    var url = 'http://query.yahooapis.com/v1/public/yql?q=select%20*%20from%20yahoo.finance.xchange%20where%20pair%20in%20(%22'+forexKey+'%22)&env=store://datatables.org/alltableswithkeys';
-    console.log(url);
+    var result = null;
+    var url = 'http://www.floatrates.com/daily/usd.json';
     request({
-        method:'GET',
-        url: url
-        }, (err,res,body) => {
-          if (err == null) {
-            console.log(body);
-            xml.parseString(body, function (err, result) {
-                var returnValue = result.query.results[0].rate[0].Bid[0];
-                return q.resolve(returnValue);
-            }); 
-          } else{
-            return q.reject(err);
-          }
-        });
+      method:'GET',
+      url: url
+      }, (err,res,body) => {
+        var result = JSON.parse(body);
+        var forexInfo = result[forexKey.toLowerCase()];
+        var returnValue = forexInfo.rate;
+        return q.resolve(returnValue);
+      });
     return q.promise;
 }
 
 function getBondValue(symbol) {
-  var rawUrl = 'http://query.yahooapis.com/v1/public/yql';
+  var rawUrl = 'https://query.yahooapis.com/v1/public/yql';
   var query = util.format('select * from yahoo.finance.quotes where symbol in ("%s")',symbol + '.BA');
-  var store = 'store://datatables.org/alltableswithkeys';
+  var store = 'store://datatables.org/alltables.env';
   var url = util.format('%s?q=%s&format=json&env=%s&callback=',rawUrl,encodeURIComponent(query),encodeURIComponent(store));
   console.log(url);
   var q = Q.defer();
