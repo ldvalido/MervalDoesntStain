@@ -25,7 +25,7 @@ function getCurrentDollarRate() {
 
 function getCurrentEuroRate() {
   var q = Q.defer();
-   yahooFinance.getRate('USD').
+   yahooFinance.getRate('EUR').
       then( res => { return q.resolve(res) }, 
         err => { return q.reject(err) }); 
   return q.promise;

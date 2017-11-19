@@ -4,8 +4,8 @@ var Q = require('q');
 
 function getBondByTitle(symbol) {
   var q = Q.defer();
-  var apiUrl = config.get('apiUrl');
-  var urlBond = apiUrl + 'titles/' + symbol;
+	var apiUrl = config.get('apiUrl');
+	var urlBond = apiUrl + 'titles/' + symbol;
   request.get(urlBond, (err, res, body) => {
 		if (err == null) {
 			var title = JSON.parse(res.body); 
