@@ -2,6 +2,7 @@ var request = require('request');
 var Q = require('q');
 var util = require('util');
 var xml = require('xml2js');
+var yahooFinance = require('yahoo-finance');
 
 function getRate(forexKey) {
   var q = Q.defer();
@@ -23,21 +24,15 @@ function getRate(forexKey) {
 }
 
 function getBondValue(symbol) {
-  var rawUrl = 'https://query.yahooapis.com/v1/public/yql';
-  var query = util.format('select * from yahoo.finance.quotes where symbol in ("%s")',symbol + '.BA');
-  var store = 'store://datatables.org/alltables.env';
-  var url = util.format('%s?q=%s&format=json&env=%s&callback=',rawUrl,encodeURIComponent(query),encodeURIComponent(store));
-  console.log(url);
   var q = Q.defer();
-    var rawJson = request({
-      method:'GET',
-      url:url
-    }, (err,res,body) => {
-      console.log(body);
-      var jsonResponse = JSON.parse(body);
-      var returnValue =  jsonResponse.query.results.quote.Ask || jsonResponse.query.results.quote.LastTradePriceOnly;
-      return q.resolve(returnValue);
-    });
+
+  yahooFinance.quote({
+    symbol: symbol + '.BA',
+    modules: [ 'price', 'summaryDetail' ] // see the docs for the full list
+  }, function (err, quotes) {
+    var returnValue = quotes.price.regularMarketPrice;
+    q.resolve(returnValue);
+  });
     return q.promise;
     
 }
