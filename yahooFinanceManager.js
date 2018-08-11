@@ -25,11 +25,11 @@ function getRate(forexKey) {
 
 function getBondValue(symbol) {
   var q = Q.defer();
-
   yahooFinance.quote({
     symbol: symbol + '.BA',
     modules: [ 'price', 'summaryDetail' ] // see the docs for the full list
   }, function (err, quotes) {
+
     var returnValue = quotes.price.regularMarketPrice;
     q.resolve(returnValue);
   });

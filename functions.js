@@ -1,6 +1,6 @@
 var request = require('request');
 var util = require('util');
-var utils = require('./utils.js')
+var utils = require('./utils.js');
 var fs = require('fs');
 var fileName = './dolar.json';
 var xml = require('xml2js');
@@ -18,16 +18,16 @@ var bcbaManager = require('./BCBAManager.js');
 function getCurrentDollarRate() {
   var q = Q.defer();
    yahooFinance.getRate('ARS').
-      then( res => { return q.resolve(res) }, 
-        err => { return q.reject(err) }); 
+      then( res => { return q.resolve(res); }, 
+        err => { return q.reject(err); }); 
   return q.promise;
 }
 
 function getCurrentEuroRate() {
   var q = Q.defer();
    yahooFinance.getRate('EUR').
-      then( res => { return q.resolve(res) }, 
-        err => { return q.reject(err) }); 
+      then( res => { return q.resolve(res); }, 
+        err => { return q.reject(err); }); 
   return q.promise;
 }
 function getBadlarRate() {
@@ -61,7 +61,7 @@ function getRateByYear(node, fee, year){
     var selector = util.format(".table-rofex > tbody > tr:contains('%s') td", util.format(key, utils.pad(i,2)  ) );
 
     var value = node(selector).first().next().text();
-    if (value != '') {
+    if (value !== '') {
       var el = fee.dollarValues.find ( o => o.month == i && o.year == year);
       var normalizedValue =  parseFloat(utils.normalizeValue(value));
       if (el){
@@ -122,14 +122,6 @@ function processFundMutual(){
 function processRates() {
   var q = Q.defer();
   var currentDate = new Date();
-  var fee = {
-    processDate: currentDate,
-    dollarRate: null,
-    euroRate:null,
-    badlarRate: null,
-    dollarValues: [],
-    badlarValues:[]
-  };
   var url = config.get('rofexUrl');
   var rawData = fs.readFileSync(fileName, 'utf8');
   var fee = JSON.parse(rawData);
@@ -140,7 +132,7 @@ function processRates() {
       url:url
     }, (err,res,body) => {
       return body;
-    })
+    });
   }).then(function(rawHtml) {
     var node = $.load(rawHtml);
     var nowDate = new Date();
@@ -183,7 +175,7 @@ function updateBondsRate() {
     var chain = Q.when();
     _.forEach (lst, function(title) {
       chain = chain.then (function() {
-        return yahooFinance.getBondValue(title.Symbol)
+        return yahooFinance.getBondValue(title.Symbol);
       }).then ( bondValue => {
         if (bondValue) {
           title.Price = bondValue;
@@ -198,7 +190,7 @@ function updateBondsRate() {
     chain.then (function() {
       q.resolve(returnValue);
     });
-  })
+  });
   return q.promise;
 }
 function updateCurrency() {
@@ -210,17 +202,17 @@ function updateCurrency() {
     var chain = Q.when();
     _.forEach(lst, currency => {
        chain = chain.then( function() {
-          return yahooFinance.getRate(currency.Symbol)
+          return yahooFinance.getRate(currency.Symbol);
        }).then( rate => {
           currency.Rate = rate;
           return mervalProxy.updateCurrency(currency);
       }).then(currency => {
           returnValue.push(currency);
       });
-    })
+    });
     chain.then (function () {
       q.resolve(returnValue);
-    })
+    });
   });
   return q.promise;
 }
@@ -249,12 +241,18 @@ function updateStockExchangeBond() {
           Currency: mervalItem.Currency
         });
       }
-    })
+    });
     q.resolve(mervalData);
   });
   return q.promise;
 }
 
 module.exports = {
-    getCurrentDollarRate, getCurrentEuroRate, processRates, processFundMutual, updateBondsRate, updateCurrency, updateStockExchangeBond
+    getCurrentDollarRate, 
+    getCurrentEuroRate, 
+    processRates, 
+    processFundMutual, 
+    updateBondsRate, 
+    updateCurrency, 
+    updateStockExchangeBond
 };
